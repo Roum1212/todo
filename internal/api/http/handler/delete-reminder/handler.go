@@ -8,7 +8,7 @@ import (
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
-const Endpoint = "/reminders"
+const Endpoint2 = "/reminders/delete"
 
 type HandlerDelete struct {
 	commandDeleteHandler delete_reminder_command.Handler
