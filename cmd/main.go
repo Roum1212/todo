@@ -16,6 +16,7 @@ import (
 
 func main() {
 	reminderRepository := postgresql_reminder_repository.NewRepository()
+
 	createReminderCommand := create_reminder_command.NewHandler(reminderRepository)
 	createReminderHTTPHandler := create_reminder_http_handler.NewHandler(createReminderCommand)
 
@@ -24,7 +25,12 @@ func main() {
 
 	router := httprouter.New()
 	router.Handler(http.MethodPost, create_reminder_http_handler.Endpoint, createReminderHTTPHandler)
-	router.Handler(http.MethodPost, delete_reminder_http_handler.Endpoint2, deleteReminderHTTPHandler)
+	router.DELETE(
+		delete_reminder_http_handler.Endpoint,
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			deleteReminderHTTPHandler.ServeHTTP(w, r, ps)
+		},
+	)
 
 	if err := http.ListenAndServe(":9080", router); err != nil {
 		log.Fatal(err)

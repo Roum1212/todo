@@ -5,13 +5,11 @@ import (
 )
 
 type DeleteCommand struct {
-	id     reminder_id_model.ReminderID
-	delete bool
+	reminderID reminder_id_model.ReminderID
 }
 
 func NewDeleteCommand(id reminder_id_model.ReminderID) DeleteCommand {
 	return DeleteCommand{
-		id:     id,
-		delete: true,
+		reminderID: id,
 	}
 }

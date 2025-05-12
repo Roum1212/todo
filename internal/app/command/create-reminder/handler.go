@@ -9,7 +9,7 @@ import (
 )
 
 type Handler struct {
-	repository reminder_aggregate.RepositorySave
+	repository reminder_aggregate.ReminderRepository
 }
 
 func (x Handler) Handle(ctx context.Context, c CreateCommand) error {
@@ -24,7 +24,7 @@ func (x Handler) Handle(ctx context.Context, c CreateCommand) error {
 	return nil
 }
 
-func NewHandler(repository reminder_aggregate.RepositorySave) Handler {
+func NewHandler(repository reminder_aggregate.ReminderRepository) Handler {
 	return Handler{
 		repository: repository,
 	}

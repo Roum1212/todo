@@ -8,12 +8,12 @@ import (
 )
 
 type Handler struct {
-	repository reminder_aggregate.RepositoryDelete
+	repository reminder_aggregate.ReminderRepository
 }
 
 func (x Handler) Handle(ctx context.Context, d DeleteCommand) error {
 
-	reminder := reminder_aggregate.DeleteReminder(d.id)
+	reminder := reminder_aggregate.DeleteReminder(d.reminderID)
 
 	if err := x.repository.DeleteReminder(ctx, reminder); err != nil {
 		return fmt.Errorf("failed to delete reminder: %w", err)
@@ -22,7 +22,7 @@ func (x Handler) Handle(ctx context.Context, d DeleteCommand) error {
 	return nil
 }
 
-func DeleteHandler(repository reminder_aggregate.RepositoryDelete) Handler {
+func DeleteHandler(repository reminder_aggregate.ReminderRepository) Handler {
 	return Handler{
 		repository: repository,
 	}

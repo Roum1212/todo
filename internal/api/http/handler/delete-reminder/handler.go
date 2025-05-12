@@ -1,33 +1,34 @@
 package delete_reminder_http_handler
 
 import (
-	"encoding/json"
 	"net/http"
+	"strconv"
+
+	"github.com/julienschmidt/httprouter"
 
 	delete_reminder_command "github.com/Roum1212/todo/internal/app/command/delete-reminder"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
-const Endpoint2 = "/reminders/delete"
+const Endpoint = "/reminders/:id"
 
-type HandlerDelete struct {
+type Handler struct {
 	commandDeleteHandler delete_reminder_command.Handler
 }
 
-func (x HandlerDelete) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var request RequestToDelete
+func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	id := p.ByName("id")
 
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "ID must be a number", http.StatusBadRequest)
 		return
 	}
 
-	id := reminder_id_model.NewReminderID(request.ID)
-
 	if err := x.commandDeleteHandler.Handle(
 		r.Context(),
-		delete_reminder_command.NewDeleteCommand(id),
+		delete_reminder_command.NewDeleteCommand(reminder_id_model.ReminderID(idInt)),
 	); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 
@@ -37,12 +38,8 @@ func (x HandlerDelete) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func NewHandler(commandDeleteHandler delete_reminder_command.Handler) HandlerDelete {
-	return HandlerDelete{
+func NewHandler(commandDeleteHandler delete_reminder_command.Handler) Handler {
+	return Handler{
 		commandDeleteHandler: commandDeleteHandler,
 	}
-}
-
-type RequestToDelete struct {
-	ID int `json:"id"`
 }

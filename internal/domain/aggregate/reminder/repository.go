@@ -4,10 +4,7 @@ import (
 	"context"
 )
 
-type RepositorySave interface {
+type ReminderRepository interface {
 	SaveReminder(ctx context.Context, reminder Reminder) error
-}
-
-type RepositoryDelete interface {
 	DeleteReminder(ctx context.Context, reminder Reminder) error
 }

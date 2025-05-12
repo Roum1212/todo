@@ -10,7 +10,6 @@ type Reminder struct {
 	id          reminder_id_model.ReminderID
 	title       reminder_title_model.ReminderTitle
 	description reminder_description_model.ReminderDescription
-	delete      bool
 }
 
 func (x Reminder) GetID() reminder_id_model.ReminderID {
@@ -34,7 +33,6 @@ func NewReminder(
 		id:          id,
 		title:       title,
 		description: description,
-		delete:      false,
 	}
 }
 
@@ -43,6 +41,5 @@ func DeleteReminder(id reminder_id_model.ReminderID) Reminder {
 		id:          id,
 		title:       "-",
 		description: "-",
-		delete:      true,
 	}
 }
