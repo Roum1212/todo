@@ -5,16 +5,16 @@ import (
 	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
-type Command struct {
+type CreateCommand struct {
 	title       reminder_title_model.ReminderTitle
 	description reminder_description_model.ReminderDescription
 }
 
-func NewCommand(
+func NewCreateCommand(
 	title reminder_title_model.ReminderTitle,
 	description reminder_description_model.ReminderDescription,
-) Command {
-	return Command{
+) CreateCommand {
+	return CreateCommand{
 		title:       title,
 		description: description,
 	}

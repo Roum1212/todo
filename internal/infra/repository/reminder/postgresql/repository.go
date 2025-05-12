@@ -20,6 +20,15 @@ func (x Repository) SaveReminder(
 	return nil
 }
 
+func (x Repository) DeleteReminder(
+	ctx context.Context,
+	reminder reminder_aggregate.Reminder,
+) error {
+	log.Println("The reminder with the ID", reminder.GetID(), "has been deleted")
+
+	return nil
+}
+
 func NewRepository() Repository {
 	return Repository{}
 }
