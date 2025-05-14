@@ -1,4 +1,4 @@
-package get_reminderByID_http_handler
+package get_reminder_by_id_http_handler
 
 import (
 	"encoding/json"
@@ -6,14 +6,14 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 
-	get_reminderByID_quary "github.com/Roum1212/todo/internal/app/quary/get-reminderByID"
+	get_reminderByID_quary "github.com/Roum1212/todo/internal/app/query/get-reminder-by-id"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
 const Endpoint = "/reminders/:id"
 
 type Handler struct {
-	commandHandler get_reminderByID_quary.Handler
+	queryHandler get_reminderByID_quary.Handler
 }
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -23,10 +23,11 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reminderID, err := reminder_id_model.NewReminderID(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	reminder, err := x.commandHandler.Handle(r.Context(),
-		get_reminderByID_quary.NewCommand(reminderID))
+	reminder, err := x.queryHandler.Handle(r.Context(),
+		get_reminderByID_quary.NewQuery(reminderID))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -44,6 +45,6 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func NewHandler(commandGetByIDHandler get_reminderByID_quary.Handler) Handler {
 	return Handler{
-		commandHandler: commandGetByIDHandler,
+		queryHandler: commandGetByIDHandler,
 	}
 }

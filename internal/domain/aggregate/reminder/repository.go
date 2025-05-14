@@ -10,4 +10,5 @@ type ReminderRepository interface {
 	SaveReminder(ctx context.Context, reminder Reminder) error
 	DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error
 	GetReminderByID(ctx context.Context, reminderID reminder_id_model.ReminderID) (Reminder, error)
+	GetAllReminders(ctx context.Context) ([]Reminder, error)
 }

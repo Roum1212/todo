@@ -1,4 +1,4 @@
-package get_reminderByID_quary
+package get_reminder_by_id_query
 
 import (
 	"context"
@@ -11,13 +11,13 @@ type Handler struct {
 	repository reminder_aggregate.ReminderRepository
 }
 
-func (x Handler) Handle(ctx context.Context, c Command) (reminder_aggregate.Reminder, error) {
-	reminderID, err := x.repository.GetReminderByID(ctx, c.reminderID)
+func (x Handler) Handle(ctx context.Context, q Query) (reminder_aggregate.Reminder, error) {
+	reminder, err := x.repository.GetReminderByID(ctx, q.reminderID)
 	if err != nil {
 		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to get reminder: %w", err)
 	}
 
-	return reminderID, nil
+	return reminder, nil
 }
 
 func NewHandler(repository reminder_aggregate.ReminderRepository) Handler {

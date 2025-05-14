@@ -40,6 +40,12 @@ func (x Repository) GetReminderByID(
 	return reminder, nil
 }
 
+func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
+	log.Println("Getting all reminders", ctx)
+
+	return []reminder_aggregate.Reminder{}, nil
+}
+
 func NewRepository() Repository {
 	return Repository{}
 }
