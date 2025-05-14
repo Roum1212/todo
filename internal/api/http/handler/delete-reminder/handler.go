@@ -21,7 +21,8 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	reminderID, err := reminder_id_model.NewReminderID(id)
 	if err != nil {
-		err.Error()
+		http.Error(w, err.Error(), http.StatusBadRequest)
+
 		return
 	}
 
@@ -34,7 +35,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 }
 
 func NewHandler(commandDeleteHandler delete_reminder_command.Handler) Handler {

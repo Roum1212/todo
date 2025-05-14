@@ -30,6 +30,16 @@ func (x Repository) DeleteReminder(
 	return nil
 }
 
+func (x Repository) GetReminderByID(
+	ctx context.Context,
+	reminderID reminder_id_model.ReminderID,
+) (reminder_aggregate.Reminder, error) {
+	log.Println("The reminder with the ID", reminderID, "has been found")
+
+	reminder := reminder_aggregate.Reminder{}
+	return reminder, nil
+}
+
 func NewRepository() Repository {
 	return Repository{}
 }
