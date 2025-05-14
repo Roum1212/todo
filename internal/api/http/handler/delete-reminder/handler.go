@@ -13,12 +13,12 @@ import (
 const Endpoint = "/reminders/:id"
 
 type Handler struct {
-	commandDeleteHandler delete_reminder_command.Handler
+	commandHandler delete_reminder_command.Handler
 }
 
-func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-
-	id := p.ByName("id")
+func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id := params.ByName("id")
 
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
@@ -26,9 +26,9 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, p httprouter.
 		return
 	}
 
-	if err := x.commandDeleteHandler.Handle(
+	if err := x.commandHandler.Handle(
 		r.Context(),
-		delete_reminder_command.NewDeleteCommand(reminder_id_model.ReminderID(idInt)),
+		delete_reminder_command.NewCommand(reminder_id_model.ReminderID(idInt)),
 	); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 
@@ -40,6 +40,6 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, p httprouter.
 
 func NewHandler(commandDeleteHandler delete_reminder_command.Handler) Handler {
 	return Handler{
-		commandDeleteHandler: commandDeleteHandler,
+		commandHandler: commandDeleteHandler,
 	}
 }
