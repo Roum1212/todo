@@ -5,6 +5,7 @@ import (
 	"log"
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
+	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
 type Repository struct{}
@@ -22,9 +23,9 @@ func (x Repository) SaveReminder(
 
 func (x Repository) DeleteReminder(
 	ctx context.Context,
-	reminderID reminder_aggregate.Reminder,
+	reminderID reminder_id_model.ReminderID,
 ) error {
-	log.Println("The reminder with the ID", reminderID.GetID(), "has been deleted")
+	log.Println("The reminder with the ID", reminderID, "has been deleted")
 
 	return nil
 }

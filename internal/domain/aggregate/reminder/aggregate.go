@@ -35,11 +35,3 @@ func NewReminder(
 		description: description,
 	}
 }
-
-func DeleteReminder(id reminder_id_model.ReminderID) Reminder {
-	return Reminder{
-		id:          id,
-		title:       "-",
-		description: "-",
-	}
-}
