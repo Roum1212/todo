@@ -12,8 +12,7 @@ type Handler struct {
 }
 
 func (x Handler) Handle(ctx context.Context, c Command) error {
-	id := c.reminderID
-	if err := x.repository.DeleteReminder(ctx, id); err != nil {
+	if err := x.repository.DeleteReminder(ctx, c.reminderID); err != nil {
 		return fmt.Errorf("failed to delete reminder: %w", err)
 	}
 
