@@ -43,8 +43,8 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func NewHandler(commandGetByIDHandler get_reminderByID_quary.Handler) Handler {
+func NewHandler(queryGetByIDHandler get_reminderByID_quary.Handler) Handler {
 	return Handler{
-		queryHandler: commandGetByIDHandler,
+		queryHandler: queryGetByIDHandler,
 	}
 }

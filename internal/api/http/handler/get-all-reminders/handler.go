@@ -11,10 +11,10 @@ type Handler struct {
 	queryHandler get_all_reminders_quer.Handler
 }
 
-const Endpoint = "/reminders/"
+const Endpoint = "/reminders"
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	reminder, err := x.queryHandler.Handle(r.Context())
+	reminders, err := x.queryHandler.Handle(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 
@@ -24,16 +24,13 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	if err := json.NewEncoder(w).Encode(reminder); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	json.NewEncoder(w).Encode(reminders)
 
-		return
-	}
-
+	return
 }
 
-func NewHandler(commandHandler get_all_reminders_quer.Handler) Handler {
+func NewHandler(queryHandler get_all_reminders_quer.Handler) Handler {
 	return Handler{
-		queryHandler: commandHandler,
+		queryHandler: queryHandler,
 	}
 }
