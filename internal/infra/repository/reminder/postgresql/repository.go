@@ -2,6 +2,7 @@ package postgresql_reminder_repository
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/Masterminds/squirrel"
@@ -12,31 +13,23 @@ import (
 )
 
 type Repository struct {
-	db *pgxpool.Pool
+	client *pgxpool.Pool
 }
 
-func (x Repository) SaveReminder(
-	ctx context.Context,
-	reminder reminder_aggregate.Reminder,
-) error {
+func (x Repository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
 	sql, args, err := squirrel.
 		Insert("reminders").
-		Columns("reminder_id", "reminder_title", "reminder_description").
-		Values(int(reminder.GetID()),
-			string(reminder.GetTitle()),
-			string(reminder.GetDescription())).
+		Columns("id", "title", "description").
+		Values(int(reminder.GetID()), string(reminder.GetTitle()), string(reminder.GetDescription())).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
-		return err
+		return fmt.Errorf("faild to build sql: %w", err)
 	}
 
-	_, err = x.db.Exec(ctx, sql, args...)
-	if err != nil {
-		return err
+	if _, err = x.client.Exec(ctx, sql, args...); err != nil {
+		return fmt.Errorf("faild to execute sql: %w", err)
 	}
-
-	log.Println("reminder saved")
 
 	return nil
 }
@@ -66,8 +59,8 @@ func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.R
 	return []reminder_aggregate.Reminder{}, nil
 }
 
-func NewRepository(db *pgxpool.Pool) Repository {
+func NewRepository(client *pgxpool.Pool) Repository {
 	return Repository{
-		db: db,
+		client: client,
 	}
 }
