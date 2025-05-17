@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
@@ -51,13 +52,41 @@ func (x Repository) DeleteReminder(
 	return nil
 }
 
-func (x Repository) GetReminderByID(
-	ctx context.Context,
+func (x Repository) GetReminderByID(ctx context.Context,
 	reminderID reminder_id_model.ReminderID,
 ) (reminder_aggregate.Reminder, error) {
-	log.Println("The reminder with the ID", reminderID, "has been found")
+	var rows pgx.Rows
+	var reminder reminder_aggregate.Reminder
 
-	reminder := reminder_aggregate.Reminder{}
+	sql, args, err := squirrel.
+		Select(fieldID, fieldTitle, fieldDescription).
+		From(table).
+		Where(squirrel.Eq{fieldID: reminderID}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to get sql: %w", err)
+	}
+
+	rows, err = x.client.Query(ctx, sql, args...)
+	if err != nil {
+		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to query sql: %w", err)
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return reminder_aggregate.Reminder{}, fmt.Errorf("reminder with ID %d not found", reminderID)
+	}
+
+	err = rows.Scan(
+		&reminder.Id,
+		&reminder.Title,
+		&reminder.Description,
+	)
+	if err != nil {
+		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to scan reminder: %w", err)
+	}
+
 	return reminder, nil
 }
 

@@ -7,21 +7,21 @@ import (
 )
 
 type Reminder struct {
-	id          reminder_id_model.ReminderID
-	title       reminder_title_model.ReminderTitle
-	description reminder_description_model.ReminderDescription
+	Id          reminder_id_model.ReminderID
+	Title       reminder_title_model.ReminderTitle
+	Description reminder_description_model.ReminderDescription
 }
 
 func (x Reminder) GetID() reminder_id_model.ReminderID {
-	return x.id
+	return x.Id
 }
 
 func (x Reminder) GetTitle() reminder_title_model.ReminderTitle {
-	return x.title
+	return x.Title
 }
 
 func (x Reminder) GetDescription() reminder_description_model.ReminderDescription {
-	return x.description
+	return x.Description
 }
 
 func NewReminder(
@@ -30,8 +30,8 @@ func NewReminder(
 	description reminder_description_model.ReminderDescription,
 ) Reminder {
 	return Reminder{
-		id:          id,
-		title:       title,
-		description: description,
+		Id:          id,
+		Title:       title,
+		Description: description,
 	}
 }
