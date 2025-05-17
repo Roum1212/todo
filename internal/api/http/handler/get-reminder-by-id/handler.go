@@ -23,11 +23,11 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reminderID, err := reminder_id_model.NewReminderID(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+
 		return
 	}
 
-	reminder, err := x.queryHandler.Handle(r.Context(),
-		get_reminderByID_quary.NewQuery(reminderID))
+	reminder, err := x.queryHandler.Handle(r.Context(), get_reminderByID_quary.NewQuery(reminderID))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -35,7 +35,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	if err := json.NewEncoder(w).Encode(reminder); err != nil {
+	if err = json.NewEncoder(w).Encode(reminder); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 
 		return
