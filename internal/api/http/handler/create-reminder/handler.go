@@ -24,13 +24,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title, err := reminder_title_model.NewReminderTitle(request.Title)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-
-		return
-	}
-
+	title := reminder_title_model.NewReminderTitle(request.Title)
 	description := reminder_description_model.NewReminderDescription(request.Description)
 
 	if err := x.commandHandler.Handle(
@@ -45,9 +39,9 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func NewHandler(commandCreateHandler create_reminder_command.Handler) Handler {
+func NewHandler(commandHandler create_reminder_command.Handler) Handler {
 	return Handler{
-		commandHandler: commandCreateHandler,
+		commandHandler: commandHandler,
 	}
 }
 

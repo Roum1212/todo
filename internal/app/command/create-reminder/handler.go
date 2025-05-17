@@ -14,7 +14,6 @@ type Handler struct {
 
 func (x Handler) Handle(ctx context.Context, c Command) error {
 	reminderID := reminder_id_model.GenerateReminderID()
-
 	reminder := reminder_aggregate.NewReminder(reminderID, c.title, c.description)
 
 	if err := x.repository.SaveReminder(ctx, reminder); err != nil {

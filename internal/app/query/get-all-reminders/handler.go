@@ -14,7 +14,7 @@ type Handler struct {
 func (x Handler) Handle(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
 	reminders, err := x.repository.GetAllReminders(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Cant get all reminders: %w", err)
+		return nil, fmt.Errorf("failed to get all reminders: %w", err)
 	}
 
 	return reminders, nil
@@ -22,5 +22,6 @@ func (x Handler) Handle(ctx context.Context) ([]reminder_aggregate.Reminder, err
 
 func NewHandler(repository reminder_aggregate.ReminderRepository) Handler {
 	return Handler{
-		repository: repository}
+		repository: repository,
+	}
 }
