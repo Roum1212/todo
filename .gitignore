@@ -1,0 +1,14 @@
+*
+
+!*.go
+!/.editorconfig
+!/.gitattributes
+!/.github/**
+!/.gitignore
+!/.golangci.yml
+!/Makefile
+!/README.md
+!/go.mod
+!/go.sum
+
+!*/
