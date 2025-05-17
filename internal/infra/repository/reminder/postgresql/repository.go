@@ -12,14 +12,22 @@ import (
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
+const table = "reminders"
+
+const (
+	fieldID          = "id"
+	fieldTitle       = "title"
+	fieldDescription = "description"
+)
+
 type Repository struct {
 	client *pgxpool.Pool
 }
 
 func (x Repository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
 	sql, args, err := squirrel.
-		Insert("reminders").
-		Columns("id", "title", "description").
+		Insert(table).
+		Columns(fieldID, fieldTitle, fieldDescription).
 		Values(int(reminder.GetID()), string(reminder.GetTitle()), string(reminder.GetDescription())).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
