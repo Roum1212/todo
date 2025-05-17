@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/julienschmidt/httprouter"
 
 	create_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/create-reminder"
@@ -18,7 +20,15 @@ import (
 )
 
 func main() {
-	reminderRepository := postgresql_reminder_repository.NewRepository()
+
+	dsn := "postgres://postgres:1324@localhost:5432/postgres"
+
+	pool, err := pgxpool.New(context.Background(), dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
 
 	createReminderCommand := create_reminder_command.NewHandler(reminderRepository)
 	deleteReminderCommand := delete_reminder_command.NewHandler(reminderRepository)
