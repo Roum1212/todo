@@ -1,11 +1,10 @@
-package create_reminder_command
+package delete_reminder_command
 
 import (
 	"context"
 	"fmt"
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
-	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
 type Handler struct {
@@ -13,12 +12,8 @@ type Handler struct {
 }
 
 func (x Handler) Handle(ctx context.Context, c Command) error {
-	reminderID := reminder_id_model.GenerateReminderID()
-
-	reminder := reminder_aggregate.NewReminder(reminderID, c.title, c.description)
-
-	if err := x.repository.SaveReminder(ctx, reminder); err != nil {
-		return fmt.Errorf("failed to save reminder: %w", err)
+	if err := x.repository.DeleteReminder(ctx, c.reminderID); err != nil {
+		return fmt.Errorf("failed to delete reminder: %w", err)
 	}
 
 	return nil

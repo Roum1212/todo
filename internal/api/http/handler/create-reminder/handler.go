@@ -16,7 +16,7 @@ type Handler struct {
 }
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var request Request
+	var request RequestToSave
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -45,13 +45,13 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func NewHandler(commandHandler create_reminder_command.Handler) Handler {
+func NewHandler(commandCreateHandler create_reminder_command.Handler) Handler {
 	return Handler{
-		commandHandler: commandHandler,
+		commandHandler: commandCreateHandler,
 	}
 }
 
-type Request struct {
+type RequestToSave struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 }
