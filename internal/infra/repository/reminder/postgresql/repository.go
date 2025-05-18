@@ -6,11 +6,14 @@ import (
 	"log"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v5"
+	_ "github.com/georgysavva/scany/v2"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
+	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
+	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
 const table = "reminders"
@@ -55,8 +58,7 @@ func (x Repository) DeleteReminder(
 func (x Repository) GetReminderByID(ctx context.Context,
 	reminderID reminder_id_model.ReminderID,
 ) (reminder_aggregate.Reminder, error) {
-	var rows pgx.Rows
-	var reminder reminder_aggregate.Reminder
+	var r Reminder
 
 	sql, args, err := squirrel.
 		Select(fieldID, fieldTitle, fieldDescription).
@@ -68,24 +70,14 @@ func (x Repository) GetReminderByID(ctx context.Context,
 		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to get sql: %w", err)
 	}
 
-	rows, err = x.client.Query(ctx, sql, args...)
+	err = pgxscan.Get(ctx, x.client, &r, sql, args...)
 	if err != nil {
 		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to query sql: %w", err)
 	}
-	defer rows.Close()
 
-	if !rows.Next() {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("reminder with ID %d not found", reminderID)
-	}
-
-	err = rows.Scan(
-		&reminder.Id,
-		&reminder.Title,
-		&reminder.Description,
-	)
-	if err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to scan reminder: %w", err)
-	}
+	reminder := reminder_aggregate.NewReminder(reminder_id_model.NewReminderIDFromInt(r.ID),
+		reminder_title_model.NewReminderTitle(r.Title),
+		reminder_description_model.NewReminderDescription(r.Description))
 
 	return reminder, nil
 }

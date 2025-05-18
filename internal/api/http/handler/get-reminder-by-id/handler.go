@@ -8,6 +8,7 @@ import (
 
 	get_reminderByID_quary "github.com/Roum1212/todo/internal/app/query/get-reminder-by-id"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
+	postgresql_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/postgresql"
 )
 
 const Endpoint = "/reminders/:id"
@@ -30,17 +31,18 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reminder, err := x.queryHandler.Handle(r.Context(), get_reminderByID_quary.NewQuery(reminderID))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	if err = json.NewEncoder(w).Encode(reminder); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 
 		return
 	}
 
+	reminderForJson := postgresql_reminder_repository.NewReminderJson(reminder.GetID(),
+		reminder.GetTitle(),
+		reminder.GetDescription())
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	_ = json.NewEncoder(w).Encode(reminderForJson)
 }
 
 func NewHandler(queryGetByIDHandler get_reminderByID_quary.Handler) Handler {
