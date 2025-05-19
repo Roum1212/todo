@@ -12,9 +12,7 @@ type Reminder struct {
 	description reminder_description_model.ReminderDescription
 }
 
-func (x Reminder) GetID() reminder_id_model.ReminderID {
-	return x.id
-}
+func (x Reminder) GetID() reminder_id_model.ReminderID { return x.id }
 
 func (x Reminder) GetTitle() reminder_title_model.ReminderTitle {
 	return x.title
