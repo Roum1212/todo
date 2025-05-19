@@ -1,4 +1,4 @@
-package postgresql_reminder_repository
+package get_reminder_by_id_http_handler
 
 import (
 	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"

@@ -20,7 +20,3 @@ func NewReminderID(s string) (ReminderID, error) {
 
 	return ReminderID(n), nil
 }
-
-func NewReminderIDFromInt(i int) ReminderID {
-	return ReminderID(i)
-}

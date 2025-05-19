@@ -46,16 +46,14 @@ func (x Repository) SaveReminder(ctx context.Context, reminder reminder_aggregat
 	return nil
 }
 
-func (x Repository) DeleteReminder(
-	ctx context.Context,
-	reminderID reminder_id_model.ReminderID,
-) error {
+func (x Repository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
 	log.Println("The reminder with the ID", reminderID, "has been deleted")
 
 	return nil
 }
 
-func (x Repository) GetReminderByID(ctx context.Context,
+func (x Repository) GetReminderByID(
+	ctx context.Context,
 	reminderID reminder_id_model.ReminderID,
 ) (reminder_aggregate.Reminder, error) {
 	var reminderDTO Reminder
@@ -70,14 +68,14 @@ func (x Repository) GetReminderByID(ctx context.Context,
 		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to get sql: %w", err)
 	}
 
-	err = pgxscan.Get(ctx, x.client, &r, sql, args...)
-	if err != nil {
+	if err = pgxscan.Get(ctx, x.client, &reminderDTO, sql, args...); err != nil {
 		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to query sql: %w", err)
 	}
 
-	reminder := reminder_aggregate.NewReminder(reminder_id_model.NewReminderIDFromInt(r.ID),
-		reminder_title_model.NewReminderTitle(r.Title),
-		reminder_description_model.NewReminderDescription(r.Description))
+	reminder := reminder_aggregate.NewReminder(
+		reminder_id_model.ReminderID(reminderDTO.ID),
+		reminder_title_model.NewReminderTitle(reminderDTO.Title),
+		reminder_description_model.NewReminderDescription(reminderDTO.Description))
 
 	return reminder, nil
 }
