@@ -46,11 +46,9 @@ func (x Repository) DeleteReminder(
 	ctx context.Context,
 	reminderID reminder_id_model.ReminderID,
 ) error {
-	reminderId := int(reminderID)
-
 	sql, args, err := squirrel.
 		Delete(table).
-		Where(squirrel.Eq{fieldID: reminderId}).
+		Where(squirrel.Eq{fieldID: int(reminderID)}).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
