@@ -75,7 +75,8 @@ func (x Repository) GetReminderByID(
 	reminder := reminder_aggregate.NewReminder(
 		reminder_id_model.ReminderID(reminderDTO.ID),
 		reminder_title_model.NewReminderTitle(reminderDTO.Title),
-		reminder_description_model.NewReminderDescription(reminderDTO.Description))
+		reminder_description_model.NewReminderDescription(reminderDTO.Description),
+	)
 
 	return reminder, nil
 }
