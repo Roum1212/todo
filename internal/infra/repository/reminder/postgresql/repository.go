@@ -58,7 +58,7 @@ func (x Repository) DeleteReminder(
 func (x Repository) GetReminderByID(ctx context.Context,
 	reminderID reminder_id_model.ReminderID,
 ) (reminder_aggregate.Reminder, error) {
-	var r Reminder
+	var reminderDTO Reminder
 
 	sql, args, err := squirrel.
 		Select(fieldID, fieldTitle, fieldDescription).
