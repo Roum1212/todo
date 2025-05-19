@@ -2,7 +2,6 @@ package postgresql_reminder_repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
@@ -67,7 +66,6 @@ func (x Repository) GetReminderByID(
 
 func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
 	var remindersDTOs []Reminder
-	var ErrRemindersNotFound = errors.New("reminders are not found")
 
 	sql, args, err := squirrel.
 		Select(fieldID, fieldTitle, fieldDescription).
@@ -83,15 +81,15 @@ func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.R
 	}
 
 	if len(remindersDTOs) == 0 {
-		return nil, ErrRemindersNotFound
+		return nil, reminder_aggregate.ErrRemindersNotFound
 	}
 
 	reminders := make([]reminder_aggregate.Reminder, len(remindersDTOs))
-	for i, reminderDTO := range remindersDTOs {
+	for i, _ := range remindersDTOs {
 		reminders[i] = reminder_aggregate.NewReminder(
-			reminder_id_model.ReminderID(reminderDTO.ID),
-			reminder_title_model.NewReminderTitle(reminderDTO.Title),
-			reminder_description_model.NewReminderDescription(reminderDTO.Description),
+			reminder_id_model.ReminderID(remindersDTOs[i].ID),
+			reminder_title_model.NewReminderTitle(remindersDTOs[i].Title),
+			reminder_description_model.NewReminderDescription(remindersDTOs[i].Description),
 		)
 
 	}

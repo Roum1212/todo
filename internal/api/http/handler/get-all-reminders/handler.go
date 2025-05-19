@@ -21,12 +21,12 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reminderSlice := NewReminderJsonSlice(reminders)
+	reminderDTO := NewReminderDTOs(reminders)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	_ = json.NewEncoder(w).Encode(reminderSlice)
+	_ = json.NewEncoder(w).Encode(reminderDTO)
 }
 
 func NewHandler(queryHandler get_all_reminders_quer.Handler) Handler {
