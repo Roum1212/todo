@@ -46,7 +46,7 @@ func (x Repository) DeleteReminder(
 	ctx context.Context,
 	reminderID reminder_id_model.ReminderID,
 ) error {
-	reminderId := NewReminderID(reminderID)
+	reminderId := int(reminderID)
 
 	sql, args, err := squirrel.
 		Delete(table).
