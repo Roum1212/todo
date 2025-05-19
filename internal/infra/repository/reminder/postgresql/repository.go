@@ -6,10 +6,13 @@ import (
 	"log"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
+	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
+	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
 const table = "reminders"
@@ -62,9 +65,33 @@ func (x Repository) GetReminderByID(
 }
 
 func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
-	log.Println("Getting all reminders", ctx)
+	var remindersDTOSlice []Reminder
+	var reminderSlice []reminder_aggregate.Reminder
+	var reminderDTO Reminder
+	var reminder reminder_aggregate.Reminder
 
-	return []reminder_aggregate.Reminder{}, nil
+	sql, args, err := squirrel.
+		Select(fieldID, fieldTitle, fieldDescription).
+		From(table).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("faild to build sql: %w", err)
+	}
+
+	if err = pgxscan.Select(ctx, x.client, &remindersDTOSlice, sql, args...); err != nil {
+		return nil, fmt.Errorf("faild to query sql: %w", err)
+	}
+
+	for _, reminderDTO = range remindersDTOSlice {
+		reminder = reminder_aggregate.NewReminder(reminder_id_model.ReminderID(reminderDTO.ID),
+			reminder_title_model.NewReminderTitle(reminderDTO.Title),
+			reminder_description_model.NewReminderDescription(reminderDTO.Description))
+
+		reminderSlice = append(reminderSlice, reminder)
+	}
+
+	return reminderSlice, nil
 }
 
 func NewRepository(client *pgxpool.Pool) Repository {
