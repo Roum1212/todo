@@ -2,6 +2,7 @@ package postgresql_reminder_repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -65,10 +66,8 @@ func (x Repository) GetReminderByID(
 }
 
 func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
-	var remindersDTOSlice []Reminder
-	var reminderSlice []reminder_aggregate.Reminder
-	var reminderDTO Reminder
-	var reminder reminder_aggregate.Reminder
+	var remindersDTOs []Reminder
+	var ErrRemindersNotFound = errors.New("reminders are not found")
 
 	sql, args, err := squirrel.
 		Select(fieldID, fieldTitle, fieldDescription).
@@ -79,19 +78,25 @@ func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.R
 		return nil, fmt.Errorf("faild to build sql: %w", err)
 	}
 
-	if err = pgxscan.Select(ctx, x.client, &remindersDTOSlice, sql, args...); err != nil {
+	if err = pgxscan.Select(ctx, x.client, &remindersDTOs, sql, args...); err != nil {
 		return nil, fmt.Errorf("faild to query sql: %w", err)
 	}
 
-	for _, reminderDTO = range remindersDTOSlice {
-		reminder = reminder_aggregate.NewReminder(reminder_id_model.ReminderID(reminderDTO.ID),
-			reminder_title_model.NewReminderTitle(reminderDTO.Title),
-			reminder_description_model.NewReminderDescription(reminderDTO.Description))
-
-		reminderSlice = append(reminderSlice, reminder)
+	if len(remindersDTOs) == 0 {
+		return nil, ErrRemindersNotFound
 	}
 
-	return reminderSlice, nil
+	reminders := make([]reminder_aggregate.Reminder, len(remindersDTOs))
+	for i, reminderDTO := range remindersDTOs {
+		reminders[i] = reminder_aggregate.NewReminder(
+			reminder_id_model.ReminderID(reminderDTO.ID),
+			reminder_title_model.NewReminderTitle(reminderDTO.Title),
+			reminder_description_model.NewReminderDescription(reminderDTO.Description),
+		)
+
+	}
+
+	return reminders, nil
 }
 
 func NewRepository(client *pgxpool.Pool) Repository {
