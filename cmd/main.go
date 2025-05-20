@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/caarlos0/env/v11"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
 
 	create_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/create-reminder"
@@ -19,10 +21,21 @@ import (
 	postgresql_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/postgresql"
 )
 
-func main() {
-	dsn := "postgres://postgres:1324@localhost:5432/postgres"
+type Сonfig struct {
+	PostgresDSN string `env:"POSTGRESQL_DSN"`
+}
 
-	pool, err := pgxpool.New(context.Background(), dsn)
+func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	cfg := Сonfig{}
+	if err := env.Parse(&cfg); err != nil {
+		log.Fatal("failed to parse env")
+	}
+
+	pool, err := pgxpool.New(context.Background(), cfg.PostgresDSN)
 	if err != nil {
 		log.Fatal(err)
 	}

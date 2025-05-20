@@ -10,5 +10,6 @@
 !/README.md
 !/go.mod
 !/go.sum
+!/.env
 
 !*/
