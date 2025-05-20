@@ -7,6 +7,7 @@ import (
 	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
+
 type Reminder struct {
 	ID          int    `json:"id"`
 	Title       string `json:"title"`
@@ -26,3 +27,4 @@ func NewReminders(reminderDTOs []Reminder) []reminder_aggregate.Reminder {
 
 	return reminders
 }
+
