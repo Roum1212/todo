@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/caarlos0/env/v11"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/julienschmidt/httprouter"
 
@@ -19,12 +20,21 @@ import (
 	postgresql_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/postgresql"
 )
 
-func main() {
-	dsn := "postgres://postgres:1324@localhost:5432/postgres"
+type Config struct {
+	PostgreSQLDSN string `env:"POSTGRESQL_DSN"`
+}
 
-	pool, err := pgxpool.New(context.Background(), dsn)
+func main() {
+	ctx := context.Background()
+
+	var cfg Config
+	if err := env.Parse(&cfg); err != nil {
+		log.Fatal("failed to parse env: %w", err)
+	}
+
+	pool, err := pgxpool.New(ctx, cfg.PostgreSQLDSN)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("failed to create pgx pool: %w", err)
 	}
 
 	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
