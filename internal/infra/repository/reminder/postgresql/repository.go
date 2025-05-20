@@ -46,9 +46,23 @@ func (x Repository) SaveReminder(ctx context.Context, reminder reminder_aggregat
 	return nil
 }
 
-func (x Repository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
-	log.Println("The reminder with the ID", reminderID, "has been deleted")
+func (x Repository) DeleteReminder(
+	ctx context.Context,
+	reminderID reminder_id_model.ReminderID,
+) error {
+	sql, args, err := squirrel.
+		Delete(table).
+		Where(squirrel.Eq{fieldID: int(reminderID)}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("faild to build sql: %w", err)
+	}
 
+	if _, err = x.client.Exec(ctx, sql, args...); err != nil {
+		return fmt.Errorf("faild to execute sql: %w", err)
+	}
+  
 	return nil
 }
 
