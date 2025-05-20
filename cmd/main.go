@@ -26,6 +26,7 @@ type Config struct {
 
 func main() {
 	ctx := context.Background()
+
 	var cfg Config
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatal("failed to parse env: %w", err)
@@ -33,7 +34,7 @@ func main() {
 
 	pool, err := pgxpool.New(ctx, cfg.PostgreSQLDSN)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("failed to create pgx pool")
 	}
 
 	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
