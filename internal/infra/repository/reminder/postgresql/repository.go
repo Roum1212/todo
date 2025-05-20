@@ -82,10 +82,9 @@ func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.R
 		return nil, reminder_aggregate.ErrRemindersNotFound
 	}
 
-	reminders := make([]reminder_aggregate.Reminder, len(reminderDTOs))
-	reminderSlice := NewReminderSlice(reminders)
+	reminders := NewReminders(reminderDTOs)
 
-	return reminderSlice, nil
+	return reminders, nil
 }
 
 func NewRepository(client *pgxpool.Pool) Repository {
