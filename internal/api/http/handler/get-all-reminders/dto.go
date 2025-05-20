@@ -10,14 +10,14 @@ type Reminder struct {
 	Description string `json:"description"`
 }
 
-func NewReminderDTOs(reminderSlice []reminder_aggregate.Reminder) []Reminder {
+func NewRemindersDTOs(remindersSlice []reminder_aggregate.Reminder) []Reminder {
 	var reminderDTOs []Reminder
 
-	for i := range reminderSlice {
+	for i := range remindersSlice {
 		reminderDTOs = append(reminderDTOs, Reminder{
-			ID:          int(reminderSlice[i].GetID()),
-			Title:       string(reminderSlice[i].GetTitle()),
-			Description: string(reminderSlice[i].GetDescription()),
+			ID:          int(remindersSlice[i].GetID()),
+			Title:       string(remindersSlice[i].GetTitle()),
+			Description: string(remindersSlice[i].GetDescription()),
 		})
 	}
 

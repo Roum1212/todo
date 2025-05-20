@@ -10,9 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
-	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
-	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
 const table = "reminders"
@@ -85,16 +83,9 @@ func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.R
 	}
 
 	reminders := make([]reminder_aggregate.Reminder, len(remindersDTOs))
-	for i, _ := range remindersDTOs {
-		reminders[i] = reminder_aggregate.NewReminder(
-			reminder_id_model.ReminderID(remindersDTOs[i].ID),
-			reminder_title_model.NewReminderTitle(remindersDTOs[i].Title),
-			reminder_description_model.NewReminderDescription(remindersDTOs[i].Description),
-		)
+	remindersSlice := NewRemindersSlice(remindersDTOs, reminders)
 
-	}
-
-	return reminders, nil
+	return remindersSlice, nil
 }
 
 func NewRepository(client *pgxpool.Pool) Repository {

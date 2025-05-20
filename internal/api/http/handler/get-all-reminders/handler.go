@@ -14,19 +14,19 @@ type Handler struct {
 const Endpoint = "/reminders"
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	reminders, err := x.queryHandler.Handle(r.Context())
+	remindersSlice, err := x.queryHandler.Handle(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 
 		return
 	}
 
-	reminderDTO := NewReminderDTOs(reminders)
+	remindersDTOs := NewRemindersDTOs(remindersSlice)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	_ = json.NewEncoder(w).Encode(reminderDTO)
+	_ = json.NewEncoder(w).Encode(remindersDTOs)
 }
 
 func NewHandler(queryHandler get_all_reminders_quer.Handler) Handler {
