@@ -26,7 +26,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := x.commandHandler.Handle(
+	if err = x.commandHandler.Handle(
 		r.Context(),
 		delete_reminder_command.NewCommand(reminderID),
 	); err != nil {
