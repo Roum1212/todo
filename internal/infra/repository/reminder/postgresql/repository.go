@@ -3,7 +3,6 @@ package postgresql_reminder_repository
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/Masterminds/squirrel"
 	_ "github.com/georgysavva/scany/v2"
@@ -62,7 +61,7 @@ func (x Repository) DeleteReminder(
 	if _, err = x.client.Exec(ctx, sql, args...); err != nil {
 		return fmt.Errorf("faild to execute sql: %w", err)
 	}
-  
+
 	return nil
 }
 

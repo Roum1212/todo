@@ -12,7 +12,6 @@ type Reminder struct {
 
 func NewReminderDTOs(reminders []reminder_aggregate.Reminder) []Reminder {
 	reminderDTOs := make([]Reminder, len(reminders))
-
 	for i := range reminders {
 		reminderDTOs = append(reminderDTOs, Reminder{
 			ID:          int(reminders[i].GetID()),
