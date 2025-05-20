@@ -15,7 +15,7 @@ type Reminder struct {
 }
 
 func NewReminders(reminderDTOs []Reminder) []reminder_aggregate.Reminder {
-	var reminders = make([]reminder_aggregate.Reminder, len(reminderDTOs))
+	reminders := make([]reminder_aggregate.Reminder, len(reminderDTOs))
 
 	for i := range reminderDTOs {
 		reminders[i] = reminder_aggregate.NewReminder(
