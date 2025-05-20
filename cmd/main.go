@@ -34,7 +34,7 @@ func main() {
 
 	pool, err := pgxpool.New(ctx, cfg.PostgreSQLDSN)
 	if err != nil {
-		log.Fatal("failed to create pgx pool")
+		log.Fatal("failed to create pgx pool: %w", err)
 	}
 
 	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
