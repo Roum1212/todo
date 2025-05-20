@@ -25,12 +25,12 @@ type Config struct {
 }
 
 func main() {
+	ctx := context.Background()
 	var cfg Config
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatal("failed to parse env: %w", err)
 	}
 
-	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, cfg.PostgreSQLDSN)
 	if err != nil {
 		log.Fatal(err)
