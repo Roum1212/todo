@@ -2,9 +2,12 @@ package reminder_aggregate
 
 import (
 	"context"
+	"errors"
 
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
+
+var ErrRemindersNotFound = errors.New("reminders not found")
 
 type ReminderRepository interface {
 	SaveReminder(ctx context.Context, reminder Reminder) error

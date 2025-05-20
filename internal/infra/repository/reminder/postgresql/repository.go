@@ -3,7 +3,6 @@ package postgresql_reminder_repository
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/Masterminds/squirrel"
 	_ "github.com/georgysavva/scany/v2"
@@ -62,7 +61,7 @@ func (x Repository) DeleteReminder(
 	if _, err = x.client.Exec(ctx, sql, args...); err != nil {
 		return fmt.Errorf("faild to execute sql: %w", err)
 	}
-  
+
 	return nil
 }
 
@@ -96,9 +95,28 @@ func (x Repository) GetReminderByID(
 }
 
 func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
-	log.Println("Getting all reminders", ctx)
+	var reminderDTOs []Reminder
 
-	return []reminder_aggregate.Reminder{}, nil
+	sql, args, err := squirrel.
+		Select(fieldID, fieldTitle, fieldDescription).
+		From(table).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("faild to build sql: %w", err)
+	}
+
+	if err = pgxscan.Select(ctx, x.client, &reminderDTOs, sql, args...); err != nil {
+		return nil, fmt.Errorf("faild to query sql: %w", err)
+	}
+
+	if len(reminderDTOs) == 0 {
+		return nil, reminder_aggregate.ErrRemindersNotFound
+	}
+
+	reminders := NewReminders(reminderDTOs)
+
+	return reminders, nil
 }
 
 func NewRepository(client *pgxpool.Pool) Repository {

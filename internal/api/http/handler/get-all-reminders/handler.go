@@ -17,16 +17,15 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reminders, err := x.queryHandler.Handle(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-
 		return
 	}
+
+	reminderDTOs := NewReminderDTOs(reminders)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(reminders)
-
-	return
+	_ = json.NewEncoder(w).Encode(reminderDTOs)
 }
 
 func NewHandler(queryHandler get_all_reminders_quer.Handler) Handler {
