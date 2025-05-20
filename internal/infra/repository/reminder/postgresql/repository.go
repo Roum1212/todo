@@ -63,7 +63,7 @@ func (x Repository) GetReminderByID(
 }
 
 func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
-	var remindersDTOs []Reminder
+	var reminderDTOs []Reminder
 
 	sql, args, err := squirrel.
 		Select(fieldID, fieldTitle, fieldDescription).
@@ -74,18 +74,18 @@ func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.R
 		return nil, fmt.Errorf("faild to build sql: %w", err)
 	}
 
-	if err = pgxscan.Select(ctx, x.client, &remindersDTOs, sql, args...); err != nil {
+	if err = pgxscan.Select(ctx, x.client, &reminderDTOs, sql, args...); err != nil {
 		return nil, fmt.Errorf("faild to query sql: %w", err)
 	}
 
-	if len(remindersDTOs) == 0 {
+	if len(reminderDTOs) == 0 {
 		return nil, reminder_aggregate.ErrRemindersNotFound
 	}
 
-	reminders := make([]reminder_aggregate.Reminder, len(remindersDTOs))
-	remindersSlice := NewRemindersSlice(remindersDTOs, reminders)
+	reminders := make([]reminder_aggregate.Reminder, len(reminderDTOs))
+	reminderSlice := NewReminderSlice(reminders)
 
-	return remindersSlice, nil
+	return reminderSlice, nil
 }
 
 func NewRepository(client *pgxpool.Pool) Repository {

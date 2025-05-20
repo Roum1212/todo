@@ -10,7 +10,7 @@ type Reminder struct {
 	Description string `json:"description"`
 }
 
-func NewRemindersDTOs(remindersSlice []reminder_aggregate.Reminder) []Reminder {
+func NewReminderDTOs(remindersSlice []reminder_aggregate.Reminder) []Reminder {
 	var reminderDTOs []Reminder
 
 	for i := range remindersSlice {

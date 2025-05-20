@@ -13,14 +13,16 @@ type Reminder struct {
 	Description string `json:"description"`
 }
 
-func NewRemindersSlice(remindersDTOs []Reminder, remindersSlice []reminder_aggregate.Reminder) []reminder_aggregate.Reminder {
-	for i := range remindersDTOs {
-		remindersSlice[i] = reminder_aggregate.NewReminder(
-			reminder_id_model.ReminderID(remindersDTOs[i].ID),
-			reminder_title_model.NewReminderTitle(remindersDTOs[i].Title),
-			reminder_description_model.NewReminderDescription(remindersDTOs[i].Description),
+func NewReminderSlice(reminderSlice []reminder_aggregate.Reminder) []reminder_aggregate.Reminder {
+	var reminderDTOs []Reminder
+
+	for i := range reminderDTOs {
+		reminderSlice[i] = reminder_aggregate.NewReminder(
+			reminder_id_model.ReminderID(reminderDTOs[i].ID),
+			reminder_title_model.NewReminderTitle(reminderDTOs[i].Title),
+			reminder_description_model.NewReminderDescription(reminderDTOs[i].Description),
 		)
 	}
 
-	return remindersSlice
+	return reminderSlice
 }
