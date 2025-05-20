@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -27,12 +26,11 @@ type Config struct {
 
 func main() {
 	var cfg Config
-	var ctx = context.Background()
-
 	if err := env.Parse(&cfg); err != nil {
-		fmt.Errorf("failed to parse env: %w", err)
+		log.Fatal("failed to parse env: %w", err)
 	}
 
+	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, cfg.PostgreSQLDSN)
 	if err != nil {
 		log.Fatal(err)
