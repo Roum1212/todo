@@ -1,6 +1,6 @@
 module github.com/Roum1212/todo
 
-go 1.24.2
+go 1.24.3
 
 require (
 	github.com/Masterminds/squirrel v1.5.4

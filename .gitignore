@@ -10,5 +10,7 @@
 !/README.md
 !/go.mod
 !/go.sum
+!/compose.yml
+!/Dockerfile
 
 !*/
