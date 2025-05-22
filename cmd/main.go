@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"net/http"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/julienschmidt/httprouter"
 	_ "github.com/lib/pq"
-	"github.com/pressly/goose"
 
 	create_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/create-reminder"
 	delete_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/delete-reminder"
@@ -25,7 +23,6 @@ import (
 
 type Config struct {
 	PostgreSQLDSN string `env:"POSTGRESQL_DSN"`
-	DBNAME        string `env:"POSTGRESQL_DBNAME"`
 }
 
 func main() {
@@ -34,24 +31,6 @@ func main() {
 	var cfg Config
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatal("failed to parse env: %w", err)
-	}
-
-	if err := goose.SetDialect("postgres"); err != nil {
-		log.Fatalf("failed to set goose dialect: %v", err)
-	}
-
-	postgres, err := sql.Open("postgres", cfg.PostgreSQLDSN)
-	if err != nil {
-		log.Fatalf("failed to connect to postgres: %v", err)
-	}
-	defer postgres.Close()
-
-	if err = postgres.Ping(); err != nil {
-		log.Fatalf("failed to ping postgres: %v", err)
-	}
-
-	if err = goose.Up(postgres, "/app/migrations"); err != nil {
-		log.Fatalf("failed to up migrations: %v", err)
 	}
 
 	pool, err := pgxpool.New(ctx, cfg.PostgreSQLDSN)

@@ -11,6 +11,16 @@ services:
     volumes:
       - ./migrations:/app/migrations
 
+  migrator:
+    build: .
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+      POSTGRESQL_DSN: ${POSTGRESQL_DSN}
+    entrypoint: [ "goose", "-dir", "/app/migrations", "postgres", "${POSTGRESQL_DSN}", "up" ]
+
+
   postgresql:
     image: postgres:16-alpine
     environment:
