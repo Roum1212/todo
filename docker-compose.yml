@@ -11,15 +11,17 @@ services:
     volumes:
       - ./migrations:/app/migrations
 
-  migrator:
-    build: .
+  postgresql-migrations:
+    image: migrate/migrate
     depends_on:
-      postgresql:
-        condition: service_healthy
-    environment:
-      POSTGRESQL_DSN: ${POSTGRESQL_DSN}
-    entrypoint: [ "goose", "-dir", "/app/migrations", "postgres", "${POSTGRESQL_DSN}", "up" ]
-
+      - postgresql
+    volumes:
+      - ./migrations/postgresql:/migrations
+    command: [
+      "-path", "/migrations",
+      "-database", "$${POSTGRESQL_DSN}",
+      "up"
+    ]
 
   postgresql:
     image: postgres:16-alpine

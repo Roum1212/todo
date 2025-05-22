@@ -8,7 +8,6 @@ import (
 	"github.com/caarlos0/env/v11"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/julienschmidt/httprouter"
-	_ "github.com/lib/pq"
 
 	create_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/create-reminder"
 	delete_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/delete-reminder"
