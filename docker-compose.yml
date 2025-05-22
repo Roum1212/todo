@@ -1,15 +1,17 @@
 
 services:
-  backend:
+  reminder:
     build: .
     ports:
       - "9080:9080"
-    env_file:
-      - .env
     depends_on:
-      - db
+      - postgresql
+    environment:
+      POSTGRESQL_DSN: ${POSTGRESQL_DSN}
+    volumes:
+      - ./migrations:/app/migrations
 
-  db:
+  postgresql:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: ${DB_USER}
