@@ -69,7 +69,6 @@ func main() {
 		ReadTimeout:  ReadTimeout,
 		IdleTimeout:  IdleTimeout,
 	}
-
 	if err = srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}

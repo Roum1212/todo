@@ -43,7 +43,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	_ = json.NewEncoder(w).Encode(reminderDTO)
+	_ = json.NewEncoder(w).Encode(reminderDTO) //nolint:errcheck,errchkjson //патамашута захател
 }
 
 func NewHandler(queryHandler get_reminder_by_id_quary.Handler) Handler {
