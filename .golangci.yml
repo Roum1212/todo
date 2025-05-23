@@ -45,8 +45,6 @@ linters:
     - testpackage
     - varnamelen
     - wrapcheck
-    - errchkjson
-    - errcheck
   enable:
     - asasalint
     - asciicheck
