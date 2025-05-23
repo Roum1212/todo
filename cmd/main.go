@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,6 +24,12 @@ import (
 type Config struct {
 	PostgreSQLDSN string `env:"POSTGRESQL_DSN"`
 }
+
+const (
+	WriteTimeout = time.Second * 15
+	ReadTimeout  = time.Second * 15
+	IdleTimeout  = time.Second * 60
+)
 
 func main() {
 	ctx := context.Background()
@@ -55,7 +62,14 @@ func main() {
 	router.Handler(http.MethodGet, get_reminder_by_id_http_handler.Endpoint, getReminderByIDHTTPHandler)
 	router.Handler(http.MethodGet, get_all_reminders_http_handler.Endpoint, getAllRemindersHTTPHandler)
 
-	if err = http.ListenAndServe(":9080", router); err != nil {
+	srv := &http.Server{
+		Addr:         ":9080",
+		Handler:      router,
+		WriteTimeout: WriteTimeout,
+		ReadTimeout:  ReadTimeout,
+		IdleTimeout:  IdleTimeout,
+	}
+	if err = srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }
