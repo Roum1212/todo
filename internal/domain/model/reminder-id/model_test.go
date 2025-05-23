@@ -19,7 +19,7 @@ func TestGenerateReminderID(t *testing.T) {
 	require.NotEqual(t, id1, id2, "Reminder ID should not be the same")
 }
 
-func TestGenerateReminderIDValid(t *testing.T) {
+func TestNewReminderIDValid(t *testing.T) {
 	t.Parallel()
 
 	text, err := NewReminderID("1234567890")
@@ -28,7 +28,7 @@ func TestGenerateReminderIDValid(t *testing.T) {
 	require.Equal(t, ReminderID(1234567890), text)
 }
 
-func TestGenerateReminderIDInvalid(t *testing.T) {
+func TestNewReminderIDInvalid(t *testing.T) {
 	t.Parallel()
 
 	str := "abc"
