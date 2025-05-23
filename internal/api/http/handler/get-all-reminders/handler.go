@@ -17,6 +17,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reminders, err := x.queryHandler.Handle(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+
 		return
 	}
 
