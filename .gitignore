@@ -13,6 +13,5 @@
 !/docker-compose.yml
 !/Dockerfile
 !/migrations/**
-!/.golangci.yml
 
 !*/
