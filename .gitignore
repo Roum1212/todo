@@ -12,8 +12,6 @@
 !/go.sum
 !/docker-compose.yml
 !/Dockerfile
-!/migrations/
-!/migrations/postgresql/
-!/migrations/postgresql/*.sql
+!/migrations/**
 
 !*/
