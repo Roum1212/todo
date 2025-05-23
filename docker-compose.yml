@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRESQL_DSN: ${POSTGRESQL_DSN}
     volumes:
-      - ./migrations:/app/migrations
+      - ./migrations/postgresql:/migrations
 
   postgresql-migrations:
     image: migrate/migrate
