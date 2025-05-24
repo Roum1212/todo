@@ -4,36 +4,33 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require" //nolint:depguard // OK.
+	"github.com/stretchr/testify/require"
 )
 
 func TestGenerateReminderID(t *testing.T) {
 	t.Parallel()
 
-	id1 := GenerateReminderID()
+	reminderID1 := GenerateReminderID()
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Nanosecond)
 
-	id2 := GenerateReminderID()
+	reminderID2 := GenerateReminderID()
 
-	require.NotEqual(t, id1, id2, "Reminder ID should not be the same")
+	require.NotEqual(t, reminderID1, reminderID2)
 }
 
-func TestNewReminderIDValid(t *testing.T) {
+func TestNewReminderID(t *testing.T) {
 	t.Parallel()
-
-	text, err := NewReminderID("1234567890")
+	reminderID, err := NewReminderID("1234567890") //nolint:wsl // OK.
 
 	require.NoError(t, err)
-	require.Equal(t, ReminderID(1234567890), text)
+	require.Equal(t, ReminderID(1234567890), reminderID)
 }
 
-func TestNewReminderIDInvalid(t *testing.T) {
+func TestNewReminderID_Err(t *testing.T) {
 	t.Parallel()
-
-	str := "abc"
-	_, err := NewReminderID(str)
+	reminderID, err := NewReminderID("?") //nolint:wsl // OK.
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid syntax")
+	require.Zero(t, reminderID)
 }
