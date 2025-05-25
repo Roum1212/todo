@@ -4,6 +4,9 @@
 | Reminder ID          | айди напоминалки       |          |
 | Reminder Title       | загловоков напоминалки |          |
 | Reminder Description | тело напоминалки       |          |
+| User                 | пользователь           | ✔️       |
+| User Login           | логин пользователя     |          |
+| User Password        | пароль пользователя    |          |
 
 Контракт:
 
@@ -11,3 +14,4 @@
 - Пользователь может удалить Reminder по Reminder ID
 - Пользователь может получить Reminder по Reminder ID
 - Пользователь может получить все Reminder
+- пользователь может создать User (задать Login и Password)
