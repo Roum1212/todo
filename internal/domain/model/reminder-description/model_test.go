@@ -8,7 +8,7 @@ import (
 
 func TestNewReminderDescription(t *testing.T) {
 	t.Parallel()
-	reminderDescription := NewReminderDescription("abc123") //nolint:wsl // OK.
 
-	require.Equal(t, ReminderDescription("abc123"), reminderDescription)
+	reminderDescription := NewReminderDescription("abc123")
+	require.Equal(t, "abc123", string(reminderDescription))
 }

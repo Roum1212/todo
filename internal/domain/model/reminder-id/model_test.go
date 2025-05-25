@@ -21,15 +21,17 @@ func TestGenerateReminderID(t *testing.T) {
 
 func TestNewReminderID(t *testing.T) {
 	t.Parallel()
-	reminderID, err := NewReminderID("1234567890") //nolint:wsl // OK.
+
+	reminderID, err := NewReminderID("1234567890")
 
 	require.NoError(t, err)
-	require.Equal(t, ReminderID(1234567890), reminderID)
+	require.Equal(t, 1234567890, int(reminderID))
 }
 
 func TestNewReminderID_Err(t *testing.T) {
 	t.Parallel()
-	reminderID, err := NewReminderID("?") //nolint:wsl // OK.
+
+	reminderID, err := NewReminderID("?")
 
 	require.Error(t, err)
 	require.Zero(t, reminderID)
