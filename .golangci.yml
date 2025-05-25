@@ -235,6 +235,7 @@ linters:
 
             # Third-party.
             - github.com/jackc/pgx/v5
+            - github.com/stretchr/testify/require
           files:
             - "$test"
 
