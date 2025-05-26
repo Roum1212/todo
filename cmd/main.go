@@ -14,10 +14,10 @@ import (
 	delete_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/delete-reminder"
 	get_all_reminders_http_handler "github.com/Roum1212/todo/internal/api/http/handler/get-all-reminders"
 	get_reminder_by_id_http_handler "github.com/Roum1212/todo/internal/api/http/handler/get-reminder-by-id"
-	sing_up_account_http_handler "github.com/Roum1212/todo/internal/api/http/handler/sing-up-account"
+	sign_up_account_http_handler "github.com/Roum1212/todo/internal/api/http/handler/sign-up-account"
 	create_reminder_command "github.com/Roum1212/todo/internal/app/command/create-reminder"
 	delete_reminder_command "github.com/Roum1212/todo/internal/app/command/delete-reminder"
-	sing_up_account_command "github.com/Roum1212/todo/internal/app/command/sing-up-account"
+	sign_up_account_command "github.com/Roum1212/todo/internal/app/command/sign-up-account"
 	get_all_reminders_query "github.com/Roum1212/todo/internal/app/query/get-all-reminders"
 	get_reminder_by_id_quary "github.com/Roum1212/todo/internal/app/query/get-reminder-by-id"
 	postgresql_account_repository "github.com/Roum1212/todo/internal/infra/repository/account/postgresql"
@@ -47,27 +47,30 @@ func main() {
 		log.Fatal("failed to create pgx pool: %w", err)
 	}
 
-	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
 	accountRepository := postgresql_account_repository.NewRepository(pool)
+	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
 
 	createReminderCommand := create_reminder_command.NewHandler(reminderRepository)
 	deleteReminderCommand := delete_reminder_command.NewHandler(reminderRepository)
 	getReminderByIDQuery := get_reminder_by_id_quary.NewHandler(reminderRepository)
 	getAllRemindersQuery := get_all_reminders_query.NewHandler(reminderRepository)
-	singUpAccountCommand := sing_up_account_command.NewHandler(accountRepository)
+	signUpAccountCommand := sign_up_account_command.NewHandler(accountRepository)
 
 	createReminderHTTPHandler := create_reminder_http_handler.NewHandler(createReminderCommand)
 	deleteReminderHTTPHandler := delete_reminder_http_handler.NewHandler(deleteReminderCommand)
 	getReminderByIDHTTPHandler := get_reminder_by_id_http_handler.NewHandler(getReminderByIDQuery)
 	getAllRemindersHTTPHandler := get_all_reminders_http_handler.NewHandler(getAllRemindersQuery)
-	singUpAccountHTTPHandler := sing_up_account_http_handler.NewHandler(singUpAccountCommand)
+	signUpAccountHTTPHandler := sign_up_account_http_handler.NewHandler(signUpAccountCommand)
 
 	router := httprouter.New()
 	router.Handler(http.MethodPost, create_reminder_http_handler.Endpoint, createReminderHTTPHandler)
 	router.Handler(http.MethodDelete, delete_reminder_http_handler.Endpoint, deleteReminderHTTPHandler)
 	router.Handler(http.MethodGet, get_reminder_by_id_http_handler.Endpoint, getReminderByIDHTTPHandler)
 	router.Handler(http.MethodGet, get_all_reminders_http_handler.Endpoint, getAllRemindersHTTPHandler)
-	router.Handler(http.MethodPost, sing_up_account_http_handler.Endpoint, singUpAccountHTTPHandler)
+	router.POST(sign_up_account_http_handler.Endpoint,
+		func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+			signUpAccountHTTPHandler.ServeHTTP(w, r)
+		})
 
 	srv := &http.Server{
 		Addr:         ":9080",

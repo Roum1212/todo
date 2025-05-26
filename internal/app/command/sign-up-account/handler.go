@@ -1,4 +1,4 @@
-package sing_up_account_command
+package sign_up_account_command
 
 import (
 	"context"
@@ -12,10 +12,10 @@ type Handler struct {
 }
 
 func (x Handler) Handle(ctx context.Context, command Command) error {
-	account := account_aggregate.NewAccount(command.accountLogin, command.accountPassword)
+	account := account_aggregate.NewAccount(command.login, command.password)
 
-	if err := x.repository.SingUpAccount(ctx, account); err != nil {
-		return fmt.Errorf("faild to sing up account %w", err)
+	if err := x.repository.SignUpAccount(ctx, account); err != nil {
+		return fmt.Errorf("failed to sign up account %w", err)
 	}
 
 	return nil

@@ -1,5 +1,7 @@
 package account_password_model
 
-type UserPassword string
+type AccountPassword string
 
-func NewAccountPassword(password string) UserPassword { return UserPassword(password) }
+func NewAccountPassword(password string) AccountPassword {
+	return AccountPassword(password)
+}

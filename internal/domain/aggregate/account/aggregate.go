@@ -7,18 +7,18 @@ import (
 
 type Account struct {
 	login    account_login_model.AccountLogin
-	password account_password_model.UserPassword
-}
-
-func (x Account) GetPassword() account_password_model.UserPassword {
-	return x.password
+	password account_password_model.AccountPassword
 }
 
 func (x Account) GetLogin() account_login_model.AccountLogin {
 	return x.login
 }
 
-func NewAccount(login account_login_model.AccountLogin, password account_password_model.UserPassword) Account {
+func (x Account) GetPassword() account_password_model.AccountPassword {
+	return x.password
+}
+
+func NewAccount(login account_login_model.AccountLogin, password account_password_model.AccountPassword) Account {
 	return Account{
 		login:    login,
 		password: password,

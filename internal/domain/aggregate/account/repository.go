@@ -2,11 +2,11 @@ package account_aggregate
 
 import (
 	"context"
+	"errors"
 )
 
+var ErrAccountAlreadyExists = errors.New("account already exists")
+
 type AccountRepository interface {
-	SingUpAccount(
-		ctx context.Context,
-		account Account,
-	) error
+	SignUpAccount(ctx context.Context, account Account) error
 }

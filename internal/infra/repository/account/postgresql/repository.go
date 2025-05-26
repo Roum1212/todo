@@ -2,9 +2,11 @@ package postgresql_account_repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	account_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/account"
@@ -14,14 +16,14 @@ const table = "accounts"
 
 const (
 	fieldLogin    = "login"
-	fieldPassword = "fieldPassword"
+	fieldPassword = "password"
 )
 
 type Repository struct {
 	client *pgxpool.Pool
 }
 
-func (x Repository) SingUpAccount(
+func (x Repository) SignUpAccount(
 	ctx context.Context,
 	account account_aggregate.Account,
 ) error {
@@ -36,7 +38,14 @@ func (x Repository) SingUpAccount(
 	}
 
 	if _, err = x.client.Exec(ctx, sql, args...); err != nil {
-		return fmt.Errorf("faild to sing-up account %w", err)
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				return account_aggregate.ErrAccountAlreadyExists
+			}
+		}
+
+		return fmt.Errorf("failed to sign up account: %w", err)
 	}
 
 	return nil
