@@ -12,14 +12,18 @@ services:
       - ./migrations/postgresql:/migrations
 
   postgresql-migrations:
-    image: migrate/migrate
+    image: gomicro/goose
+    platform: linux/amd64
     depends_on:
       - postgresql
     volumes:
       - ./migrations/postgresql:/migrations
+    environment:
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: ${POSTGRESQL_DSN}
     command: [
-      "-path", "/migrations",
-      "-database", "$${POSTGRESQL_DSN}",
+      "goose",
+      "-dir", "/migrations",
       "up"
     ]
 
