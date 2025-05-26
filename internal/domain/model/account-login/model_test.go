@@ -9,6 +9,6 @@ import (
 func TestNewAccountLogin(t *testing.T) {
 	t.Parallel()
 
-	str := NewAccountLogin("abc123")
-	require.Equal(t, "abc123", string(str))
+	login := NewAccountLogin("abc123")
+	require.Equal(t, "abc123", string(login))
 }
