@@ -37,7 +37,7 @@ func (x Repository) SignUpAccount(
 		return fmt.Errorf("faild to build sql: %w", err)
 	}
 
-	if _, err = x.client.Exec(ctx, sql, args...); err != nil {
+	if _, err = x.client.Exec(ctx, sql, args...); err != nil { //nolint:nestif // OK.
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
