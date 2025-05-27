@@ -1,9 +1,9 @@
 -- +goose Up
 CREATE TABLE reminders
 (
-    id          int PRIMARY KEY,
-    title       text NOT NULL,
-    description text NOT NULL
+    id          INT PRIMARY KEY,
+    title       TEXT NOT NULL,
+    description TEXT NOT NULL
 );
 
 -- +goose Down

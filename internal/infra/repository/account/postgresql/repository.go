@@ -39,10 +39,8 @@ func (x Repository) SignUpAccount(
 
 	if _, err = x.client.Exec(ctx, sql, args...); err != nil { //nolint:nestif // OK.
 		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			if pgErr.Code == "23505" {
-				return account_aggregate.ErrAccountAlreadyExists
-			}
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return account_aggregate.ErrAccountAlreadyExists
 		}
 
 		return fmt.Errorf("failed to sign up account: %w", err)

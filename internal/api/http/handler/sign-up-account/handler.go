@@ -31,7 +31,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		sign_up_account_command.NewCommand(login, password),
 	); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusConflict)
 
 		return
 	}

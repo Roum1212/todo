@@ -67,10 +67,7 @@ func main() {
 	router.Handler(http.MethodDelete, delete_reminder_http_handler.Endpoint, deleteReminderHTTPHandler)
 	router.Handler(http.MethodGet, get_reminder_by_id_http_handler.Endpoint, getReminderByIDHTTPHandler)
 	router.Handler(http.MethodGet, get_all_reminders_http_handler.Endpoint, getAllRemindersHTTPHandler)
-	router.POST(sign_up_account_http_handler.Endpoint,
-		func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-			signUpAccountHTTPHandler.ServeHTTP(w, r)
-		})
+	router.Handler(http.MethodPost, sign_up_account_http_handler.Endpoint, signUpAccountHTTPHandler)
 
 	srv := &http.Server{
 		Addr:         ":9080",
