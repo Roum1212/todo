@@ -8,5 +8,5 @@ import (
 var ErrAccountAlreadyExists = errors.New("account already exists")
 
 type AccountRepository interface {
-	SignUpAccount(ctx context.Context, account Account) error
+	LogInAccount(ctx context.Context, account Account) error
 }
