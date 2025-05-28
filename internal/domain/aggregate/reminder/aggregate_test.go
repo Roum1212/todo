@@ -13,25 +13,16 @@ import (
 func TestNewReminder(t *testing.T) {
 	t.Parallel()
 
-	TableTest := []struct {
-		id          string
-		title       string
-		description string
-	}{
-		{id: "1", title: "title", description: "description"},
-		{id: "-10", title: "", description: "description"},
-		{id: "0", title: "title", description: ""},
-	}
+	id, errID := reminder_id_model.NewReminderID("1234")
+	title, errTitle := reminder_title_model.NewReminderTitle("title")
+	description, errDescription := reminder_description_model.NewReminderDescription("description")
 
-	for _, tt := range TableTest {
-		id, _ := reminder_id_model.NewReminderID(tt.id) //nolint:errcheck // OK.
-		title, _ := reminder_title_model.NewReminderTitle(tt.title)
-		description, _ := reminder_description_model.NewReminderDescription(tt.description)
+	require.NoError(t, errID, errTitle, errDescription)
 
-		reminder := NewReminder(id, title, description)
+	reminder := NewReminder(id, title, description) // я не понимаю, как мне тут удалить reminder и при этом проверить
+	// newReminder, хотя в целом тесты для конструкторов можно удалить
 
-		require.Equal(t, id, reminder.GetID())
-		require.Equal(t, title, reminder.GetTitle())
-		require.Equal(t, description, reminder.GetDescription())
-	}
+	require.Equal(t, id, reminder.GetID())
+	require.Equal(t, title, reminder.GetTitle())
+	require.Equal(t, description, reminder.GetDescription())
 }

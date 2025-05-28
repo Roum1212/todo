@@ -15,7 +15,7 @@ func GenerateReminderID() ReminderID {
 func NewReminderID(s string) (ReminderID, error) {
 	n, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("reminder_id cannot be parsed as int: %w", err)
+		return 0, fmt.Errorf("reminder id cannot be parsed as int: %w", err)
 	}
 
 	return ReminderID(n), nil

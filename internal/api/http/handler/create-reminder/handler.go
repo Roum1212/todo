@@ -12,11 +12,11 @@ import (
 const Endpoint = "/reminders"
 
 type Handler struct {
-	commandHandler create_reminder_command.Handler
+	commandHandler create_reminder_command.CommandHandler
 }
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var request RequestToSave
+	var request Request
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -27,14 +27,18 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	title, err := reminder_title_model.NewReminderTitle(request.Title)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+
+		return
 	}
 
 	description, err := reminder_description_model.NewReminderDescription(request.Description)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+
+		return
 	}
 
-	if err := x.commandHandler.Handle(
+	if err := x.commandHandler.HandleCommand(
 		r.Context(),
 		create_reminder_command.NewCommand(title, description),
 	); err != nil {
@@ -46,13 +50,13 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func NewHandler(commandHandler create_reminder_command.Handler) Handler {
+func NewHandler(commandHandler create_reminder_command.CommandHandler) Handler {
 	return Handler{
 		commandHandler: commandHandler,
 	}
 }
 
-type RequestToSave struct {
+type Request struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 }

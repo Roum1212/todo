@@ -11,18 +11,11 @@ import (
 func TestNewCommand(t *testing.T) {
 	t.Parallel()
 
-	TableTest := []struct {
-		reminderID string
-	}{
-		{reminderID: "1234"},
-		{reminderID: ""},
-		{reminderID: "-2 1 4 3"},
-	}
+	reminderID, err := reminder_id_model.NewReminderID("123")
 
-	for _, tt := range TableTest {
-		reminderID, _ := reminder_id_model.NewReminderID(tt.reminderID) //nolint:errcheck // OK.
+	require.NoError(t, err)
 
-		command := NewCommand(reminderID)
-		require.Equal(t, reminderID, command.reminderID)
-	}
+	command := NewCommand(reminderID)
+
+	require.Equal(t, reminderID, command.reminderID)
 }

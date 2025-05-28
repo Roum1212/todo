@@ -12,20 +12,13 @@ import (
 func TestNewCommand(t *testing.T) {
 	t.Parallel()
 
-	TableTest := []struct {
-		title, description string
-	}{
-		{title: "title", description: "description"},
-		{title: "title", description: ""},
-		{title: "", description: "description"},
-	}
+	title, errTitle := reminder_title_model.NewReminderTitle("title")
+	description, errDescription := reminder_description_model.NewReminderDescription("description")
 
-	for _, tt := range TableTest {
-		title, _ := reminder_title_model.NewReminderTitle(tt.title)
-		description, _ := reminder_description_model.NewReminderDescription(tt.description)
+	require.NoError(t, errTitle, errDescription)
 
-		command := NewCommand(title, description)
-		require.Equal(t, title, command.title)
-		require.Equal(t, description, command.description)
-	}
+	command := NewCommand(title, description)
+
+	require.Equal(t, title, command.title)
+	require.Equal(t, description, command.description)
 }

@@ -8,11 +8,14 @@ import (
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
-type Handler struct {
+type CommandHandler interface {
+	HandleCommand(ctx context.Context, command Command) error
+}
+type commandHandler struct {
 	repository reminder_aggregate.ReminderRepository
 }
 
-func (x Handler) Handle(ctx context.Context, c Command) error {
+func (x commandHandler) HandleCommand(ctx context.Context, c Command) error {
 	reminderID := reminder_id_model.GenerateReminderID()
 	reminder := reminder_aggregate.NewReminder(reminderID, c.title, c.description)
 
@@ -23,8 +26,8 @@ func (x Handler) Handle(ctx context.Context, c Command) error {
 	return nil
 }
 
-func NewHandler(repository reminder_aggregate.ReminderRepository) Handler {
-	return Handler{
+func NewHandler(repository reminder_aggregate.ReminderRepository) CommandHandler {
+	return commandHandler{
 		repository: repository,
 	}
 }

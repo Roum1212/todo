@@ -18,8 +18,8 @@ func NewReminders(reminderDTOs []Reminder) []reminder_aggregate.Reminder {
 	for i := range reminderDTOs {
 		reminders[i] = reminder_aggregate.NewReminder(
 			reminder_id_model.ReminderID(reminderDTOs[i].ID),
-			reminder_title_model.NewReminderTitle(reminderDTOs[i].Title),
-			reminder_description_model.NewReminderDescription(reminderDTOs[i].Description),
+			reminder_title_model.MustNewReminderTitle(reminderDTOs[i].Title),
+			reminder_description_model.MustNewReminderDescription(reminderDTOs[i].Description),
 		)
 	}
 

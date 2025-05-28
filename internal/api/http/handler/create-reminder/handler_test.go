@@ -3,110 +3,119 @@ package create_reminder_http_handler
 import (
 	"bytes"
 	"context"
-	"errors"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/gojuno/minimock/v3"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	create_reminder_command "github.com/Roum1212/todo/internal/app/command/create-reminder"
-	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 )
 
 func TestHandler_ServeHTTP_Created(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
-	defer mc.Wait(time.Second)
 
-	reminderRepositoryMock := reminder_aggregate.NewReminderRepositoryMock(mc).
-		SaveReminderMock.
-		Inspect(func(ctx context.Context, r reminder_aggregate.Reminder) {
-			require.Equal(mc, "title", string(r.GetTitle()))
-			require.Equal(mc, "description", string(r.GetDescription()))
+	request := Request{
+		Title:       "title",
+		Description: "description",
+	}
+
+	commandHandlerMock := create_reminder_command.NewCommandHandlerMock(mc).
+		HandleCommandMock.
+		Inspect(func(ctx context.Context, c create_reminder_command.Command) {
+			require.Equal(mc, request.Title, string(c.GetTitle()))
+			require.Equal(t, request.Description, string(c.GetDescription()))
 		}).
 		Return(nil)
 
-	commandHandler := create_reminder_command.NewHandler(reminderRepositoryMock)
+	httpHandler := NewHandler(commandHandlerMock)
 
-	httpHandler := NewHandler(commandHandler)
+	requestBody, _ := json.Marshal(request)
 
-	body := []byte(`{"title":"title","description":"description"}`)
-	req := httptest.NewRequest(http.MethodPost, Endpoint, bytes.NewBuffer(body))
+	r := httptest.NewRequest(http.MethodPost, Endpoint, bytes.NewBuffer(requestBody))
 
-	req.Header.Set("Content-Type", "application/json")
+	r.Header.Set("Content-Type", "application/json")
 
 	recorder := httptest.NewRecorder()
 
-	httpHandler.ServeHTTP(recorder, req)
+	httpHandler.ServeHTTP(recorder, r)
 
 	require.Equal(t, http.StatusCreated, recorder.Code)
 }
 
-func TestHandler_ServeHTTP_Bad_Request(t *testing.T) {
+func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
-	defer mc.Wait(time.Second)
 
-	reminderRepositoryMock := reminder_aggregate.NewReminderRepositoryMock(mc)
+	commandHandlerMock := create_reminder_command.NewCommandHandlerMock(mc)
 
-	commandHandler := create_reminder_command.NewHandler(reminderRepositoryMock)
+	httpHandler := NewHandler(commandHandlerMock)
 
-	httpHandler := NewHandler(commandHandler)
-
-	TableTest := []struct {
-		body []byte
-	}{
-		{[]byte(`{"title":123,"description":"description"}`)},
-		{[]byte(`{"title":"title only"`)},
-		{[]byte(``)},
+	tests := []Request{
+		{
+			Title:       "",
+			Description: "",
+		},
+		{
+			Title:       "title",
+			Description: "",
+		},
+		{
+			Title:       "",
+			Description: "description",
+		},
 	}
 
-	for _, tt := range TableTest {
-		req := httptest.NewRequest(http.MethodPost, Endpoint, bytes.NewBuffer(tt.body))
+	for _, tt := range tests {
+		requestBody, _ := json.Marshal(tt)
 
-		req.Header.Set("Content-Type", "application/json")
+		r := httptest.NewRequest(http.MethodPost, Endpoint, bytes.NewBuffer(requestBody))
+
+		r.Header.Set("Content-Type", "application/json")
 
 		recorder := httptest.NewRecorder()
 
-		httpHandler.ServeHTTP(recorder, req)
+		httpHandler.ServeHTTP(recorder, r)
 
 		require.Equal(t, http.StatusBadRequest, recorder.Code)
 	}
 }
 
-func TestHandler_ServeHTTP_Internal_Server_Error(t *testing.T) {
+func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
-	defer mc.Wait(time.Second)
 
-	err := errors.New("internal server error")
+	request := Request{
+		Title:       "title",
+		Description: "description",
+	}
 
-	reminderRepositoryMock := reminder_aggregate.NewReminderRepositoryMock(mc).
-		SaveReminderMock.
-		Inspect(func(ctx context.Context, r reminder_aggregate.Reminder) {
-			require.Equal(mc, "title", string(r.GetTitle()))
-			require.Equal(mc, "description", string(r.GetDescription()))
+	commandHandlerMock := create_reminder_command.NewCommandHandlerMock(mc).
+		HandleCommandMock.
+		Inspect(func(ctx context.Context, c create_reminder_command.Command) {
+			require.Equal(mc, request.Title, string(c.GetTitle()))
+			require.Equal(t, request.Description, string(c.GetDescription()))
 		}).
-		Return(err)
+		Return(assert.AnError)
 
-	commandHandler := create_reminder_command.NewHandler(reminderRepositoryMock)
+	httpHandler := NewHandler(commandHandlerMock)
 
-	httpHandler := NewHandler(commandHandler)
+	requestBody, _ := json.Marshal(request)
 
-	body := []byte(`{"title":"title","description":"description"}`)
-	req := httptest.NewRequest(http.MethodPost, Endpoint, bytes.NewBuffer(body))
+	r := httptest.NewRequest(http.MethodPost, Endpoint, bytes.NewBuffer(requestBody))
 
-	req.Header.Set("Content-Type", "application/json")
+	r.Header.Set("Content-Type", "application/json")
 
 	recorder := httptest.NewRecorder()
 
-	httpHandler.ServeHTTP(recorder, req)
+	httpHandler.ServeHTTP(recorder, r)
 
 	require.Equal(t, http.StatusInternalServerError, recorder.Code)
 }
