@@ -9,6 +9,6 @@ import (
 func TestNewReminderDescription(t *testing.T) {
 	t.Parallel()
 
-	reminderDescription := NewReminderDescription("abc123")
+	reminderDescription, _ := NewReminderDescription("abc123")
 	require.Equal(t, "abc123", string(reminderDescription))
 }
