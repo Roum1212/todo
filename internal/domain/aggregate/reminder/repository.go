@@ -1,5 +1,7 @@
 package reminder_aggregate
 
+//go:generate minimock -i ReminderRepository -o mock/ -s "_mock.go"
+
 import (
 	"context"
 	"errors"

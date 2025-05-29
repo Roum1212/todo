@@ -1,6 +1,8 @@
 package postgresql_reminder_repository
 
 import (
+	"fmt"
+
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
@@ -13,15 +15,24 @@ type Reminder struct {
 	Description string `json:"description"`
 }
 
-func NewReminders(reminderDTOs []Reminder) []reminder_aggregate.Reminder {
+func NewReminders(reminderDTOs []Reminder) ([]reminder_aggregate.Reminder, error) {
 	reminders := make([]reminder_aggregate.Reminder, len(reminderDTOs))
+
 	for i := range reminderDTOs {
-		reminders[i] = reminder_aggregate.NewReminder(
-			reminder_id_model.ReminderID(reminderDTOs[i].ID),
-			reminder_title_model.MustNewReminderTitle(reminderDTOs[i].Title),
-			reminder_description_model.MustNewReminderDescription(reminderDTOs[i].Description),
-		)
+		reminderID := reminder_id_model.ReminderID(reminderDTOs[i].ID)
+
+		reminderTitle, err := reminder_title_model.NewReminderTitle(reminderDTOs[i].Title)
+		if err != nil {
+			return nil, fmt.Errorf("faild to create reminder: %w", err)
+		}
+
+		reminderDescription, err := reminder_description_model.NewReminderDescription(reminderDTOs[i].Description)
+		if err != nil {
+			return nil, fmt.Errorf("faild to create reminder: %w", err)
+		}
+
+		reminders[i] = reminder_aggregate.NewReminder(reminderID, reminderTitle, reminderDescription)
 	}
 
-	return reminders
+	return reminders, nil
 }

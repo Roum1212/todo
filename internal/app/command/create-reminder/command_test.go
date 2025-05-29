@@ -12,13 +12,13 @@ import (
 func TestNewCommand(t *testing.T) {
 	t.Parallel()
 
-	title, errTitle := reminder_title_model.NewReminderTitle("title")
-	description, errDescription := reminder_description_model.NewReminderDescription("description")
+	title, err := reminder_title_model.NewReminderTitle("title")
+	require.NoError(t, err)
 
-	require.NoError(t, errTitle, errDescription)
+	description, err := reminder_description_model.NewReminderDescription("description")
+	require.NoError(t, err)
 
 	command := NewCommand(title, description)
-
 	require.Equal(t, title, command.title)
 	require.Equal(t, description, command.description)
 }

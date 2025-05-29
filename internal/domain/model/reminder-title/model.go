@@ -23,7 +23,3 @@ func NewReminderTitle(s string) (ReminderTitle, error) {
 
 	return x, nil
 }
-
-func MustNewReminderTitle(s string) ReminderTitle {
-	return ReminderTitle(s)
-}

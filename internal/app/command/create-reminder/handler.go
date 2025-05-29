@@ -1,5 +1,7 @@
 package create_reminder_command
 
+//go:generate minimock -i CommandHandler -o mock/ -s "_mock.go"
+
 import (
 	"context"
 	"fmt"
@@ -11,6 +13,7 @@ import (
 type CommandHandler interface {
 	HandleCommand(ctx context.Context, command Command) error
 }
+
 type commandHandler struct {
 	repository reminder_aggregate.ReminderRepository
 }

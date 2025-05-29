@@ -12,10 +12,8 @@ func TestNewCommand(t *testing.T) {
 	t.Parallel()
 
 	reminderID, err := reminder_id_model.NewReminderID("123")
-
 	require.NoError(t, err)
 
 	command := NewCommand(reminderID)
-
 	require.Equal(t, reminderID, command.reminderID)
 }

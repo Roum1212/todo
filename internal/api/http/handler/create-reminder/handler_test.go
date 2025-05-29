@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	create_reminder_command "github.com/Roum1212/todo/internal/app/command/create-reminder"
+	"github.com/Roum1212/todo/internal/app/command/create-reminder/mock"
 )
 
 func TestHandler_ServeHTTP_Created(t *testing.T) {
@@ -25,7 +26,7 @@ func TestHandler_ServeHTTP_Created(t *testing.T) {
 		Description: "description",
 	}
 
-	commandHandlerMock := create_reminder_command.NewCommandHandlerMock(mc).
+	commandHandlerMock := mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
 		Inspect(func(ctx context.Context, c create_reminder_command.Command) {
 			require.Equal(mc, request.Title, string(c.GetTitle()))
@@ -35,10 +36,10 @@ func TestHandler_ServeHTTP_Created(t *testing.T) {
 
 	httpHandler := NewHandler(commandHandlerMock)
 
-	requestBody, _ := json.Marshal(request)
+	requestBody, err := json.Marshal(request) //nolint:errchkjson // OK.
+	require.NoError(t, err)
 
 	r := httptest.NewRequest(http.MethodPost, Endpoint, bytes.NewBuffer(requestBody))
-
 	r.Header.Set("Content-Type", "application/json")
 
 	recorder := httptest.NewRecorder()
@@ -53,7 +54,7 @@ func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	commandHandlerMock := create_reminder_command.NewCommandHandlerMock(mc)
+	commandHandlerMock := mock.NewCommandHandlerMock(mc)
 
 	httpHandler := NewHandler(commandHandlerMock)
 
@@ -73,10 +74,10 @@ func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		requestBody, _ := json.Marshal(tt)
+		requestBody, err := json.Marshal(tt) //nolint:errchkjson // OK.
+		require.NoError(t, err)
 
 		r := httptest.NewRequest(http.MethodPost, Endpoint, bytes.NewBuffer(requestBody))
-
 		r.Header.Set("Content-Type", "application/json")
 
 		recorder := httptest.NewRecorder()
@@ -97,7 +98,7 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 		Description: "description",
 	}
 
-	commandHandlerMock := create_reminder_command.NewCommandHandlerMock(mc).
+	commandHandlerMock := mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
 		Inspect(func(ctx context.Context, c create_reminder_command.Command) {
 			require.Equal(mc, request.Title, string(c.GetTitle()))
@@ -107,10 +108,10 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 
 	httpHandler := NewHandler(commandHandlerMock)
 
-	requestBody, _ := json.Marshal(request)
+	requestBody, err := json.Marshal(request) //nolint:errchkjson // OK.
+	require.NoError(t, err)
 
 	r := httptest.NewRequest(http.MethodPost, Endpoint, bytes.NewBuffer(requestBody))
-
 	r.Header.Set("Content-Type", "application/json")
 
 	recorder := httptest.NewRecorder()

@@ -8,6 +8,10 @@ type Command struct {
 	reminderID reminder_id_model.ReminderID
 }
 
+func (x Command) GetID() reminder_id_model.ReminderID {
+	return x.reminderID
+}
+
 func NewCommand(reminderID reminder_id_model.ReminderID) Command {
 	return Command{
 		reminderID: reminderID,

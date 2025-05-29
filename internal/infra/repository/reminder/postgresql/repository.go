@@ -84,11 +84,19 @@ func (x Repository) GetReminderByID(
 		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to query sql: %w", err)
 	}
 
-	reminder := reminder_aggregate.NewReminder(
-		reminder_id_model.ReminderID(reminderDTO.ID),
-		reminder_title_model.MustNewReminderTitle(reminderDTO.Title),
-		reminder_description_model.MustNewReminderDescription(reminderDTO.Description),
-	)
+	reminderId := reminder_id_model.ReminderID(reminderDTO.ID)
+
+	reminderTitle, err := reminder_title_model.NewReminderTitle(reminderDTO.Title)
+	if err != nil {
+		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to create reminder: %w", err)
+	}
+
+	reminderDescription, err := reminder_description_model.NewReminderDescription(reminderDTO.Description)
+	if err != nil {
+		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to create reminder: %w", err)
+	}
+
+	reminder := reminder_aggregate.NewReminder(reminderId, reminderTitle, reminderDescription)
 
 	return reminder, nil
 }
@@ -113,7 +121,10 @@ func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.R
 		return nil, reminder_aggregate.ErrRemindersNotFound
 	}
 
-	reminders := NewReminders(reminderDTOs)
+	reminders, err := NewReminders(reminderDTOs)
+	if err != nil {
+		return nil, fmt.Errorf("faild to create reminder: %w", err)
+	}
 
 	return reminders, nil
 }
