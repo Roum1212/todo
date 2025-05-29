@@ -38,7 +38,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := x.commandHandler.HandleCommand(
+	if err = x.commandHandler.HandleCommand(
 		r.Context(),
 		create_reminder_command.NewCommand(title, description),
 	); err != nil {

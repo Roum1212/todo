@@ -28,7 +28,7 @@ func NewReminderID(s string) (ReminderID, error) {
 	}
 
 	x := ReminderID(n)
-	if x.Validate() != nil {
+	if err = x.Validate(); err != nil {
 		return 0, fmt.Errorf("failed to validate reminder: %w", err)
 	}
 

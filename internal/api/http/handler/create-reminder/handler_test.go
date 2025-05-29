@@ -29,8 +29,8 @@ func TestHandler_ServeHTTP_Created(t *testing.T) {
 	commandHandlerMock := mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
 		Inspect(func(ctx context.Context, c create_reminder_command.Command) {
-			require.Equal(mc, request.Title, string(c.GetTitle()))
-			require.Equal(t, request.Description, string(c.GetDescription()))
+			require.Equal(mc, request.Title, string(c.GetReminderTitle()))
+			require.Equal(t, request.Description, string(c.GetReminderDescription()))
 		}).
 		Return(nil)
 
@@ -39,7 +39,12 @@ func TestHandler_ServeHTTP_Created(t *testing.T) {
 	requestBody, err := json.Marshal(request) //nolint:errchkjson // OK.
 	require.NoError(t, err)
 
-	r := httptest.NewRequest(http.MethodPost, Endpoint, bytes.NewBuffer(requestBody))
+	r := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodPost,
+		Endpoint,
+		bytes.NewReader(requestBody),
+	)
 	r.Header.Set("Content-Type", "application/json")
 
 	recorder := httptest.NewRecorder()
@@ -77,7 +82,12 @@ func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 		requestBody, err := json.Marshal(tt) //nolint:errchkjson // OK.
 		require.NoError(t, err)
 
-		r := httptest.NewRequest(http.MethodPost, Endpoint, bytes.NewBuffer(requestBody))
+		r := httptest.NewRequestWithContext(
+			t.Context(),
+			http.MethodPost,
+			Endpoint,
+			bytes.NewReader(requestBody),
+		)
 		r.Header.Set("Content-Type", "application/json")
 
 		recorder := httptest.NewRecorder()
@@ -101,8 +111,8 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 	commandHandlerMock := mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
 		Inspect(func(ctx context.Context, c create_reminder_command.Command) {
-			require.Equal(mc, request.Title, string(c.GetTitle()))
-			require.Equal(t, request.Description, string(c.GetDescription()))
+			require.Equal(mc, request.Title, string(c.GetReminderTitle()))
+			require.Equal(t, request.Description, string(c.GetReminderDescription()))
 		}).
 		Return(assert.AnError)
 
@@ -111,7 +121,12 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 	requestBody, err := json.Marshal(request) //nolint:errchkjson // OK.
 	require.NoError(t, err)
 
-	r := httptest.NewRequest(http.MethodPost, Endpoint, bytes.NewBuffer(requestBody))
+	r := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodPost,
+		Endpoint,
+		bytes.NewReader(requestBody),
+	)
 	r.Header.Set("Content-Type", "application/json")
 
 	recorder := httptest.NewRecorder()

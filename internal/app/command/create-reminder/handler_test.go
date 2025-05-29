@@ -12,7 +12,7 @@ import (
 	"github.com/Roum1212/todo/internal/domain/aggregate/reminder/mock"
 )
 
-func TestCommandHandler_HandleCommand_Success(t *testing.T) {
+func TestCommandHandler_HandleCommand(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
@@ -32,7 +32,7 @@ func TestCommandHandler_HandleCommand_Success(t *testing.T) {
 
 	handler := NewHandler(reminderRepositoryMock)
 
-	err := handler.HandleCommand(context.Background(), command)
+	err := handler.HandleCommand(t.Context(), command)
 	require.NoError(t, err)
 }
 
@@ -55,6 +55,6 @@ func TestCommandHandler_HandleCommand_Error(t *testing.T) {
 
 	handler := NewHandler(reminderRepositoryMock)
 
-	err := handler.HandleCommand(context.Background(), command)
+	err := handler.HandleCommand(t.Context(), command)
 	require.ErrorIs(t, err, assert.AnError)
 }

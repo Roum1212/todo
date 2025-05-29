@@ -12,7 +12,7 @@ import (
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
-func TestCommandHandler_HandleCommand_Success(t *testing.T) {
+func TestCommandHandler_HandleCommand(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
@@ -24,13 +24,13 @@ func TestCommandHandler_HandleCommand_Success(t *testing.T) {
 	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
 		DeleteReminderMock.
 		Inspect(func(ctx context.Context, reminderID reminder_id_model.ReminderID) {
-			require.Equal(t, reminder_id_model.ReminderID(123), reminderID)
+			require.Equal(t, command.reminderID, reminderID)
 		}).
 		Return(nil)
 
-	handler := NewHandler(reminderRepositoryMock)
+	handler := NewCommandHandler(reminderRepositoryMock)
 
-	err := handler.HandleCommand(context.Background(), command)
+	err := handler.HandleCommand(t.Context(), command)
 	require.NoError(t, err)
 }
 
@@ -46,12 +46,12 @@ func TestCommandHandler_HandleCommand_Error(t *testing.T) {
 	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
 		DeleteReminderMock.
 		Inspect(func(ctx context.Context, reminderID reminder_id_model.ReminderID) {
-			require.Equal(t, reminder_id_model.ReminderID(123), reminderID)
+			require.Equal(t, command.reminderID, reminderID)
 		}).
 		Return(assert.AnError)
 
-	handler := NewHandler(reminderRepositoryMock)
+	handler := NewCommandHandler(reminderRepositoryMock)
 
-	err := handler.HandleCommand(context.Background(), command)
+	err := handler.HandleCommand(t.Context(), command)
 	require.ErrorIs(t, err, assert.AnError)
 }

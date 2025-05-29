@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
@@ -21,26 +22,28 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	const id = "123"
-
 	commandHandlerMock := mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
 		Inspect(func(ctx context.Context, c delete_reminder_command.Command) {
-			require.Equal(t, reminder_id_model.ReminderID(123), c.GetID())
+			require.Equal(t, reminder_id_model.ReminderID(123), c.GetReminderID())
 		}).
 		Return(nil)
 
 	httpHandler := NewHandler(commandHandlerMock)
 
-	r := httptest.NewRequest(http.MethodDelete, "/reminders/"+id, nil)
+	router := httprouter.New()
+	router.Handler(http.MethodDelete, Endpoint, httpHandler)
 
-	params := httprouter.Params{httprouter.Param{Key: "id", Value: id}}
-	ctx := context.WithValue(r.Context(), httprouter.ParamsKey, params)
-	r = r.WithContext(ctx)
+	r := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodDelete,
+		strings.Replace(Endpoint, paramsID, "123", -1),
+		http.NoBody,
+	)
 
 	recorder := httptest.NewRecorder()
 
-	httpHandler.ServeHTTP(recorder, r)
+	router.ServeHTTP(recorder, r)
 
 	require.Equal(t, http.StatusOK, recorder.Code)
 }
@@ -50,21 +53,23 @@ func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	const id = ""
-
 	commandHandlerMock := mock.NewCommandHandlerMock(mc)
 
 	httpHandler := NewHandler(commandHandlerMock)
 
-	r := httptest.NewRequest(http.MethodDelete, "/reminders/"+id, nil)
+	router := httprouter.New()
+	router.Handler(http.MethodDelete, Endpoint, httpHandler)
 
-	params := httprouter.Params{httprouter.Param{Key: "id", Value: id}}
-	ctx := context.WithValue(r.Context(), httprouter.ParamsKey, params)
-	r = r.WithContext(ctx)
+	r := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodDelete,
+		strings.Replace(Endpoint, paramsID, "abc", -1),
+		http.NoBody,
+	)
 
 	recorder := httptest.NewRecorder()
 
-	httpHandler.ServeHTTP(recorder, r)
+	router.ServeHTTP(recorder, r)
 
 	require.Equal(t, http.StatusBadRequest, recorder.Code)
 }
@@ -74,26 +79,28 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	const id = "123"
-
 	commandHandlerMock := mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
 		Inspect(func(ctx context.Context, c delete_reminder_command.Command) {
-			require.Equal(t, reminder_id_model.ReminderID(123), c.GetID())
+			require.Equal(t, reminder_id_model.ReminderID(123), c.GetReminderID())
 		}).
 		Return(assert.AnError)
 
 	httpHandler := NewHandler(commandHandlerMock)
 
-	r := httptest.NewRequest(http.MethodDelete, "/reminders/"+id, nil)
+	router := httprouter.New()
+	router.Handler(http.MethodDelete, Endpoint, httpHandler)
 
-	params := httprouter.Params{httprouter.Param{Key: "id", Value: id}}
-	ctx := context.WithValue(r.Context(), httprouter.ParamsKey, params)
-	r = r.WithContext(ctx)
+	r := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodDelete,
+		strings.Replace(Endpoint, paramsID, "123", -1),
+		http.NoBody,
+	)
 
 	recorder := httptest.NewRecorder()
 
-	httpHandler.ServeHTTP(recorder, r)
+	router.ServeHTTP(recorder, r)
 
 	require.Equal(t, http.StatusInternalServerError, recorder.Code)
 }

@@ -1,7 +1,5 @@
 package create_reminder_command
 
-//go:generate minimock -i CommandHandler -o mock/ -s "_mock.go"
-
 import (
 	"context"
 	"fmt"
@@ -10,6 +8,7 @@ import (
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
+//go:generate minimock -i CommandHandler -o mock/ -s "_mock.go"
 type CommandHandler interface {
 	HandleCommand(ctx context.Context, command Command) error
 }

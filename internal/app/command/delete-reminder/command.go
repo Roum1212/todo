@@ -8,7 +8,7 @@ type Command struct {
 	reminderID reminder_id_model.ReminderID
 }
 
-func (x Command) GetID() reminder_id_model.ReminderID {
+func (x Command) GetReminderID() reminder_id_model.ReminderID {
 	return x.reminderID
 }
 
