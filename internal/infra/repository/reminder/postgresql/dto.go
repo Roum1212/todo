@@ -23,12 +23,12 @@ func NewReminders(reminderDTOs []Reminder) ([]reminder_aggregate.Reminder, error
 
 		reminderTitle, err := reminder_title_model.NewReminderTitle(reminderDTOs[i].Title)
 		if err != nil {
-			return nil, fmt.Errorf("faild to create reminder: %w", err)
+			return nil, fmt.Errorf("failed to create reminder: %w", err)
 		}
 
 		reminderDescription, err := reminder_description_model.NewReminderDescription(reminderDTOs[i].Description)
 		if err != nil {
-			return nil, fmt.Errorf("faild to create reminder: %w", err)
+			return nil, fmt.Errorf("failed to create reminder: %w", err)
 		}
 
 		reminders[i] = reminder_aggregate.NewReminder(reminderID, reminderTitle, reminderDescription)

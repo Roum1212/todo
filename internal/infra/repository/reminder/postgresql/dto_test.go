@@ -10,8 +10,6 @@ import (
 	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
-// func NewReminders(reminderDTOs []Reminder) ([]reminder_aggregate.Reminder, error)
-
 func TestNewReminders(t *testing.T) {
 	t.Parallel()
 
@@ -32,6 +30,8 @@ func TestNewReminders(t *testing.T) {
 	})
 
 	t.Run("immutable values", func(t *testing.T) {
+		t.Parallel()
+
 		tests := []Reminder{
 			{
 				ID:          123,
@@ -72,5 +72,4 @@ func TestNewReminders(t *testing.T) {
 			)
 		}
 	})
-
 }
