@@ -13,17 +13,17 @@ import (
 func TestNewReminder(t *testing.T) {
 	t.Parallel()
 
-	id, err := reminder_id_model.NewReminderID("1234")
+	id, err := reminder_id_model.NewReminderID("123")
 	require.NoError(t, err)
 
-	title, err := reminder_title_model.NewReminderTitle("title")
+	title, err := reminder_title_model.NewReminderTitle("abc")
 	require.NoError(t, err)
 
-	description, err := reminder_description_model.NewReminderDescription("description")
+	description, err := reminder_description_model.NewReminderDescription("abc")
 	require.NoError(t, err)
 
 	reminder := NewReminder(id, title, description)
-	require.Equal(t, id, reminder.id)
-	require.Equal(t, title, reminder.title)
-	require.Equal(t, description, reminder.description)
+	require.Equal(t, id, reminder.GetID())
+	require.Equal(t, title, reminder.GetTitle())
+	require.Equal(t, description, reminder.GetDescription())
 }
