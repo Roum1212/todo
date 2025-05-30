@@ -8,13 +8,13 @@ import (
 )
 
 type Handler struct {
-	queryHandler get_all_reminders_quer.Handler
+	queryHandler get_all_reminders_quer.QueryHandler
 }
 
 const Endpoint = "/reminders"
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	reminders, err := x.queryHandler.Handle(r.Context())
+	reminders, err := x.queryHandler.HandleQuery(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 
@@ -29,7 +29,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(reminderDTOs) //nolint:errcheck,errchkjson // OK.
 }
 
-func NewHandler(queryHandler get_all_reminders_quer.Handler) Handler {
+func NewHandler(queryHandler get_all_reminders_quer.QueryHandler) Handler {
 	return Handler{
 		queryHandler: queryHandler,
 	}

@@ -17,3 +17,23 @@ func TestNewCommand(t *testing.T) {
 	command := NewCommand(reminderID)
 	require.Equal(t, reminderID, command.reminderID)
 }
+
+func TestCommand_Validate(t *testing.T) {
+	t.Parallel()
+
+	command := Command{
+		reminderID: 123,
+	}
+	err := command.Validate()
+	require.NoError(t, err)
+}
+
+func TestCommand_Validate_Error(t *testing.T) {
+	t.Parallel()
+
+	command := Command{
+		reminderID: 0,
+	}
+	err := command.Validate()
+	require.Error(t, err)
+}

@@ -13,7 +13,7 @@ import (
 const Endpoint = "/reminders/:id"
 
 type Handler struct {
-	queryHandler get_reminder_by_id_quary.Handler
+	queryHandler get_reminder_by_id_quary.QueryHandler
 }
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +27,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reminder, err := x.queryHandler.Handle(r.Context(), get_reminder_by_id_quary.NewQuery(reminderID))
+	reminder, err := x.queryHandler.HandleQuery(r.Context(), get_reminder_by_id_quary.NewQuery(reminderID))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 
@@ -46,7 +46,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(reminderDTO) //nolint:errcheck,errchkjson // OK.
 }
 
-func NewHandler(queryHandler get_reminder_by_id_quary.Handler) Handler {
+func NewHandler(queryHandler get_reminder_by_id_quary.QueryHandler) Handler {
 	return Handler{
 		queryHandler: queryHandler,
 	}

@@ -19,6 +19,41 @@ func TestNewCommand(t *testing.T) {
 	require.NoError(t, err)
 
 	command := NewCommand(title, description)
-	require.Equal(t, title, command.title)
-	require.Equal(t, description, command.description)
+	require.Equal(t, title, command.GetReminderTitle())
+	require.Equal(t, description, command.GetReminderDescription())
+}
+
+func TestCommand_Validate(t *testing.T) {
+	t.Parallel()
+
+	command := Command{
+		title:       "title",
+		description: "description",
+	}
+	err := command.Validate()
+	require.NoError(t, err)
+}
+
+func TestNewCommand_Validate_Error(t *testing.T) {
+	t.Parallel()
+
+	t.Run("invalid title", func(t *testing.T) {
+		command := Command{
+			title:       "",
+			description: "description",
+		}
+		err := command.title.Validate()
+		require.Error(t, err)
+	})
+
+	t.Run("invalid description", func(t *testing.T) {
+		t.Parallel()
+
+		command := Command{
+			title:       "title",
+			description: "",
+		}
+		err := command.description.Validate()
+		require.Error(t, err)
+	})
 }

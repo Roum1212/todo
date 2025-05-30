@@ -1,4 +1,4 @@
-package get_all_reminders_quer
+package get_all_reminders_query
 
 import (
 	"context"
@@ -10,11 +10,16 @@ import (
 
 var ErrRemindersNotFound = errors.New("reminders not found")
 
-type Handler struct {
+//go:generate minimock -i QueryHandler -o mock/ -s "_mock.go"
+type QueryHandler interface {
+	HandleQuery(ctx context.Context) ([]reminder_aggregate.Reminder, error)
+}
+
+type queryHandler struct {
 	repository reminder_aggregate.ReminderRepository
 }
 
-func (x Handler) Handle(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
+func (x queryHandler) HandleQuery(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
 	reminders, err := x.repository.GetAllReminders(ctx)
 	if err != nil {
 		switch {
@@ -28,8 +33,8 @@ func (x Handler) Handle(ctx context.Context) ([]reminder_aggregate.Reminder, err
 	return reminders, nil
 }
 
-func NewHandler(repository reminder_aggregate.ReminderRepository) Handler {
-	return Handler{
+func NewHandler(repository reminder_aggregate.ReminderRepository) QueryHandler {
+	return queryHandler{
 		repository: repository,
 	}
 }
