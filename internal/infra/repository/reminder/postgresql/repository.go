@@ -34,11 +34,11 @@ func (x Repository) SaveReminder(ctx context.Context, reminder reminder_aggregat
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
-		return fmt.Errorf("faild to build sql: %w", err)
+		return fmt.Errorf("failed to build sql: %w", err)
 	}
 
 	if _, err = x.client.Exec(ctx, sql, args...); err != nil {
-		return fmt.Errorf("faild to execute sql: %w", err)
+		return fmt.Errorf("failed to execute sql: %w", err)
 	}
 
 	return nil
@@ -54,11 +54,11 @@ func (x Repository) DeleteReminder(
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
-		return fmt.Errorf("faild to build sql: %w", err)
+		return fmt.Errorf("failed to build sql: %w", err)
 	}
 
 	if _, err = x.client.Exec(ctx, sql, args...); err != nil {
-		return fmt.Errorf("faild to execute sql: %w", err)
+		return fmt.Errorf("failed to execute sql: %w", err)
 	}
 
 	return nil
@@ -77,18 +77,30 @@ func (x Repository) GetReminderByID(
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to get sql: %w", err)
+		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to get sql: %w", err)
 	}
 
 	if err = pgxscan.Get(ctx, x.client, &reminderDTO, sql, args...); err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("faild to query sql: %w", err)
+		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to query sql: %w", err)
 	}
 
-	reminder := reminder_aggregate.NewReminder(
-		reminder_id_model.ReminderID(reminderDTO.ID),
-		reminder_title_model.NewReminderTitle(reminderDTO.Title),
-		reminder_description_model.NewReminderDescription(reminderDTO.Description),
-	)
+	if reminderDTO == (Reminder{}) {
+		return reminder_aggregate.Reminder{}, reminder_aggregate.ErrReminderNotFound
+	}
+
+	reminderID = reminder_id_model.ReminderID(reminderDTO.ID)
+
+	reminderTitle, err := reminder_title_model.NewReminderTitle(reminderDTO.Title)
+	if err != nil {
+		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to create reminder: %w", err)
+	}
+
+	reminderDescription, err := reminder_description_model.NewReminderDescription(reminderDTO.Description)
+	if err != nil {
+		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to create reminder: %w", err)
+	}
+
+	reminder := reminder_aggregate.NewReminder(reminderID, reminderTitle, reminderDescription)
 
 	return reminder, nil
 }
@@ -102,18 +114,21 @@ func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.R
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("faild to build sql: %w", err)
+		return nil, fmt.Errorf("failed to build sql: %w", err)
 	}
 
 	if err = pgxscan.Select(ctx, x.client, &reminderDTOs, sql, args...); err != nil {
-		return nil, fmt.Errorf("faild to query sql: %w", err)
+		return nil, fmt.Errorf("failed to query sql: %w", err)
 	}
 
 	if len(reminderDTOs) == 0 {
 		return nil, reminder_aggregate.ErrRemindersNotFound
 	}
 
-	reminders := NewReminders(reminderDTOs)
+	reminders, err := NewReminders(reminderDTOs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create reminder: %w", err)
+	}
 
 	return reminders, nil
 }

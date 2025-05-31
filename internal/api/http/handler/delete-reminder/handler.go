@@ -2,6 +2,7 @@ package delete_reminder_http_handler
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 
@@ -9,15 +10,17 @@ import (
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
-const Endpoint = "/reminders/:id"
+const paramsID = ":id"
+
+const Endpoint = "/reminders/" + paramsID
 
 type Handler struct {
-	commandHandler delete_reminder_command.Handler
+	commandHandler delete_reminder_command.CommandHandler
 }
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
-	id := params.ByName("id")
+	id := params.ByName(strings.TrimPrefix(paramsID, ":"))
 
 	reminderID, err := reminder_id_model.NewReminderID(id)
 	if err != nil {
@@ -26,7 +29,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = x.commandHandler.Handle(
+	if err = x.commandHandler.HandleCommand(
 		r.Context(),
 		delete_reminder_command.NewCommand(reminderID),
 	); err != nil {
@@ -38,7 +41,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func NewHandler(commandDeleteHandler delete_reminder_command.Handler) Handler {
+func NewHandler(commandDeleteHandler delete_reminder_command.CommandHandler) Handler {
 	return Handler{
 		commandHandler: commandDeleteHandler,
 	}

@@ -236,6 +236,9 @@ linters:
             # Third-party.
             - github.com/jackc/pgx/v5
             - github.com/stretchr/testify/require
+            - github.com/gojuno/minimock/v3
+            - github.com/stretchr/testify/assert
+            - github.com/julienschmidt/httprouter
           files:
             - "$test"
 

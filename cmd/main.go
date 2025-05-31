@@ -47,7 +47,7 @@ func main() {
 	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
 
 	createReminderCommand := create_reminder_command.NewHandler(reminderRepository)
-	deleteReminderCommand := delete_reminder_command.NewHandler(reminderRepository)
+	deleteReminderCommand := delete_reminder_command.NewCommandHandler(reminderRepository)
 	getReminderByIDQuery := get_reminder_by_id_quary.NewHandler(reminderRepository)
 	getAllRemindersQuery := get_all_reminders_query.NewHandler(reminderRepository)
 

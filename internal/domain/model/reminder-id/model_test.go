@@ -22,15 +22,30 @@ func TestGenerateReminderID(t *testing.T) {
 func TestNewReminderID(t *testing.T) {
 	t.Parallel()
 
-	reminderID, err := NewReminderID("1234567890")
+	reminderID, err := NewReminderID("123")
 	require.NoError(t, err)
-	require.Equal(t, 1234567890, int(reminderID))
+	require.Equal(t, 123, int(reminderID))
+}
+
+func TestReminderID_Validate(t *testing.T) {
+	t.Parallel()
+
+	reminderID := ReminderID(123)
+	err := reminderID.Validate()
+	require.NoError(t, err)
 }
 
 func TestNewReminderID_Err(t *testing.T) {
 	t.Parallel()
 
-	reminderID, err := NewReminderID("?")
+	_, err := NewReminderID("abc123")
 	require.Error(t, err)
-	require.Zero(t, reminderID)
+}
+
+func TestReminderID_Validate_Error(t *testing.T) {
+	t.Parallel()
+
+	reminderID := ReminderID(0)
+	err := reminderID.Validate()
+	require.Error(t, err)
 }

@@ -1,4 +1,3 @@
-
 services:
   reminder:
     build: .
@@ -12,14 +11,18 @@ services:
       - ./migrations/postgresql:/migrations
 
   postgresql-migrations:
-    image: migrate/migrate
+    image: gomicro/goose
+    platform: linux/amd64
     depends_on:
       - postgresql
     volumes:
       - ./migrations/postgresql:/migrations
+    environment:
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: ${POSTGRESQL_DSN}
     command: [
+      "goose",
       "-path", "/migrations",
-      "-database", "$${POSTGRESQL_DSN}",
       "up"
     ]
 
@@ -30,7 +33,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 5
