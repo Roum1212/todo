@@ -35,7 +35,6 @@ func TestQueryHandler_HandleQuery(t *testing.T) {
 
 		reminders, err := postgresql_reminder_repository.NewReminders(reminderDTOs)
 		require.NoError(t, err)
-		x
 		reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
 			GetAllRemindersMock.
 			Return(reminders, nil)
