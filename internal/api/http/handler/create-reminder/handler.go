@@ -24,14 +24,14 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title, err := reminder_title_model.NewReminderTitle(request.Title)
+	reminderTitle, err := reminder_title_model.NewReminderTitle(request.Title)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 
 		return
 	}
 
-	description, err := reminder_description_model.NewReminderDescription(request.Description)
+	reminderDescription, err := reminder_description_model.NewReminderDescription(request.Description)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 
@@ -40,7 +40,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if err = x.commandHandler.HandleCommand(
 		r.Context(),
-		create_reminder_command.NewCommand(title, description),
+		create_reminder_command.NewCommand(reminderTitle, reminderDescription),
 	); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 

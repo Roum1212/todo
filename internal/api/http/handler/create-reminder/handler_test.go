@@ -57,36 +57,66 @@ func TestHandler_ServeHTTP_Created(t *testing.T) {
 func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 	t.Parallel()
 
-	mc := minimock.NewController(t)
+	t.Run("empty title and description", func(t *testing.T) {
+		t.Parallel()
 
-	commandHandlerMock := mock.NewCommandHandlerMock(mc)
+		mc := minimock.NewController(t)
 
-	httpHandler := NewHandler(commandHandlerMock)
+		commandHandlerMock := mock.NewCommandHandlerMock(mc)
 
-	tests := []Request{
-		{
-			Title:       "",
-			Description: "",
-		},
-		{
-			Title:       "title",
-			Description: "",
-		},
-		{
-			Title:       "",
-			Description: "description",
-		},
-	}
+		httpHandler := NewHandler(commandHandlerMock)
 
-	for _, tt := range tests {
-		requestBody, err := json.Marshal(tt) //nolint:errchkjson // OK.
-		require.NoError(t, err)
+		tests := []Request{
+			{
+				Title:       "",
+				Description: "",
+			},
+			{
+				Title:       "title",
+				Description: "",
+			},
+			{
+				Title:       "",
+				Description: "description",
+			},
+		}
+
+		for _, tt := range tests {
+			requestBody, err := json.Marshal(tt) //nolint:errchkjson // OK.
+			require.NoError(t, err)
+
+			r := httptest.NewRequestWithContext(
+				t.Context(),
+				http.MethodPost,
+				Endpoint,
+				bytes.NewReader(requestBody),
+			)
+			r.Header.Set("Content-Type", "application/json")
+
+			recorder := httptest.NewRecorder()
+
+			httpHandler.ServeHTTP(recorder, r)
+
+			require.Equal(t, http.StatusBadRequest, recorder.Code)
+		}
+	})
+
+	t.Run("invalidJSON", func(t *testing.T) {
+		t.Parallel()
+
+		mc := minimock.NewController(t)
+
+		invalidJSON := []byte(`{"title": "title", "description": "description"`)
+
+		commandHandlerMock := mock.NewCommandHandlerMock(mc)
+
+		httpHandler := NewHandler(commandHandlerMock)
 
 		r := httptest.NewRequestWithContext(
 			t.Context(),
 			http.MethodPost,
 			Endpoint,
-			bytes.NewReader(requestBody),
+			bytes.NewReader(invalidJSON),
 		)
 		r.Header.Set("Content-Type", "application/json")
 
@@ -95,7 +125,7 @@ func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 		httpHandler.ServeHTTP(recorder, r)
 
 		require.Equal(t, http.StatusBadRequest, recorder.Code)
-	}
+	})
 }
 
 func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {

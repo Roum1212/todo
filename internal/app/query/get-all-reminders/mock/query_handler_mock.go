@@ -14,7 +14,7 @@ import (
 	"github.com/gojuno/minimock/v3"
 )
 
-// QueryHandlerMock implements mm_get_all_reminders_quer.QueryHandler
+// QueryHandlerMock implements mm_get_all_reminders_query.QueryHandler
 type QueryHandlerMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
@@ -27,7 +27,7 @@ type QueryHandlerMock struct {
 	HandleQueryMock          mQueryHandlerMockHandleQuery
 }
 
-// NewQueryHandlerMock returns a mock for mm_get_all_reminders_quer.QueryHandler
+// NewQueryHandlerMock returns a mock for mm_get_all_reminders_query.QueryHandler
 func NewQueryHandlerMock(t minimock.Tester) *QueryHandlerMock {
 	m := &QueryHandlerMock{t: t}
 
@@ -230,7 +230,7 @@ func (mmHandleQuery *mQueryHandlerMockHandleQuery) invocationsDone() bool {
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// HandleQuery implements mm_get_all_reminders_quer.QueryHandler
+// HandleQuery implements mm_get_all_reminders_query.QueryHandler
 func (mmHandleQuery *QueryHandlerMock) HandleQuery(ctx context.Context) (ra1 []reminder_aggregate.Reminder, err error) {
 	mm_atomic.AddUint64(&mmHandleQuery.beforeHandleQueryCounter, 1)
 	defer mm_atomic.AddUint64(&mmHandleQuery.afterHandleQueryCounter, 1)

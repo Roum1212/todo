@@ -2,7 +2,7 @@
 
 package mock
 
-//go:generate minimock -i github.com/Roum1212/todo/internal/app/query/get-reminder-by-id.QueryHandler -o query_handler_mock_test.go -n QueryHandlerMock -p mock
+//go:generate minimock -i github.com/Roum1212/todo/internal/app/query/get-reminder-by-id.QueryHandler -o query_handler_mock.go -n QueryHandlerMock -p mock
 
 import (
 	"context"

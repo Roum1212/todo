@@ -2,7 +2,9 @@ package get_reminder_by_id_http_handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 
@@ -10,7 +12,9 @@ import (
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
-const Endpoint = "/reminders/:id"
+const ParamsID = ":id"
+
+const Endpoint = "/reminders/" + ParamsID
 
 type Handler struct {
 	queryHandler get_reminder_by_id_quary.QueryHandler
@@ -18,7 +22,7 @@ type Handler struct {
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
-	id := params.ByName("id")
+	id := params.ByName(strings.TrimPrefix(ParamsID, ":"))
 
 	reminderID, err := reminder_id_model.NewReminderID(id)
 	if err != nil {
@@ -29,9 +33,16 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	reminder, err := x.queryHandler.HandleQuery(r.Context(), get_reminder_by_id_quary.NewQuery(reminderID))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		switch {
+		case errors.Is(err, get_reminder_by_id_quary.ErrReminderNotFound):
+			http.Error(w, err.Error(), http.StatusNotFound)
 
-		return
+			return
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+			return
+		}
 	}
 
 	reminderDTO := NewReminder(

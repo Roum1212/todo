@@ -10,7 +10,7 @@ import (
 
 var ErrReminderNotFound = errors.New("reminder not found")
 
-//go:generate minimock -i QueryHandler -o mock/ s- "_mock.go"
+//go:generate minimock -i QueryHandler -o mock/ -s "_mock.go"
 type QueryHandler interface {
 	HandleQuery(ctx context.Context, q Query) (reminder_aggregate.Reminder, error)
 }
