@@ -82,7 +82,7 @@ func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 		}
 
 		for _, tt := range tests {
-			requestBody, err := json.Marshal(tt) //nolint:errchkjson // OK.
+			requestBody, err := json.Marshal(tt)
 			require.NoError(t, err)
 
 			r := httptest.NewRequestWithContext(

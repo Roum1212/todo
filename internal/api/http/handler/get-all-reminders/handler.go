@@ -28,6 +28,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
 	reminderDTOs := NewReminderDTOs(reminders)
 
 	w.Header().Set("Content-Type", "application/json")

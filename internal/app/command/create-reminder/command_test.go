@@ -38,12 +38,17 @@ func TestNewCommand_Validate_Error(t *testing.T) {
 	t.Parallel()
 
 	t.Run("invalid title", func(t *testing.T) {
+		t.Parallel()
+
 		command := Command{
 			title:       "",
 			description: "description",
 		}
 		err := command.title.Validate()
 		require.Error(t, err)
+
+		err = command.description.Validate()
+		require.NoError(t, err)
 	})
 
 	t.Run("invalid description", func(t *testing.T) {
@@ -55,5 +60,8 @@ func TestNewCommand_Validate_Error(t *testing.T) {
 		}
 		err := command.description.Validate()
 		require.Error(t, err)
+
+		err = command.title.Validate()
+		require.NoError(t, err)
 	})
 }

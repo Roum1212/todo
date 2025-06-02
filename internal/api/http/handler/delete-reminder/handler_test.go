@@ -37,7 +37,7 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 	r := httptest.NewRequestWithContext(
 		t.Context(),
 		http.MethodDelete,
-		strings.Replace(Endpoint, paramsID, "123", -1),
+		strings.ReplaceAll(Endpoint, paramsID, "123"),
 		http.NoBody,
 	)
 
@@ -63,7 +63,7 @@ func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 	r := httptest.NewRequestWithContext(
 		t.Context(),
 		http.MethodDelete,
-		strings.Replace(Endpoint, paramsID, "abc", -1),
+		strings.ReplaceAll(Endpoint, paramsID, "abc"),
 		http.NoBody,
 	)
 
@@ -94,7 +94,7 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 	r := httptest.NewRequestWithContext(
 		t.Context(),
 		http.MethodDelete,
-		strings.Replace(Endpoint, paramsID, "123", -1),
+		strings.ReplaceAll(Endpoint, paramsID, "123"),
 		http.NoBody,
 	)
 
