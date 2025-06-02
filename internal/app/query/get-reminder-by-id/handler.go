@@ -23,7 +23,7 @@ func (x queryHandler) HandleQuery(ctx context.Context, q Query) (reminder_aggreg
 	reminder, err := x.repository.GetReminderByID(ctx, q.reminderID)
 	if err != nil {
 		switch {
-		case errors.Is(err, reminder_aggregate.ErrRemindersNotFound):
+		case errors.Is(err, reminder_aggregate.ErrReminderNotFound):
 			return reminder_aggregate.Reminder{}, ErrReminderNotFound
 		default:
 			return reminder_aggregate.Reminder{}, fmt.Errorf("failed to get reminder: %w", err)

@@ -7,8 +7,10 @@ import (
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
-var ErrRemindersNotFound = errors.New("reminders not found")
-var ErrReminderNotFound = errors.New("reminder not found")
+var (
+	ErrRemindersNotFound = errors.New("reminders not found")
+	ErrReminderNotFound  = errors.New("reminder not found")
+)
 
 //go:generate minimock -i ReminderRepository -o mock/ -s "_mock.go"
 type ReminderRepository interface {

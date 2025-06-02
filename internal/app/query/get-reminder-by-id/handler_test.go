@@ -112,7 +112,7 @@ func TestQueryHandler_HandlerQuery_ErrReminderNotFound(t *testing.T) {
 		Inspect(func(ctx context.Context, reminderID reminder_id_model.ReminderID) {
 			require.Equal(t, query.reminderID, reminderID)
 		}).
-		Return(reminder_aggregate.Reminder{}, reminder_aggregate.ErrRemindersNotFound)
+		Return(reminder_aggregate.Reminder{}, reminder_aggregate.ErrReminderNotFound)
 
 	handler := NewHandler(reminderRepositoryMock)
 
