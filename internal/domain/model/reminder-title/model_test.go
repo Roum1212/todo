@@ -1,33 +1,35 @@
 package reminder_title_model
 
 import (
+	"crypto/rand"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-const str = "abc123"
-
 func TestNewReminderTitle(t *testing.T) {
 	t.Parallel()
 
-	reminderTitle, err := NewReminderTitle(str)
+	s := rand.Text()
+
+	reminderTitle, err := NewReminderTitle(s)
 	require.NoError(t, err)
-	require.Equal(t, str, string(reminderTitle))
+	require.Equal(t, s, string(reminderTitle))
 }
 
 func TestReminderTitle_Validate(t *testing.T) {
 	t.Parallel()
 
-	reminderTitle := ReminderTitle(str)
-	err := reminderTitle.Validate()
+	s := rand.Text()
+
+	reminderTitle, err := NewReminderTitle(s)
 	require.NoError(t, err)
+	require.NoError(t, reminderTitle.Validate())
 }
 
 func TestReminderTitle_Validate_Error(t *testing.T) {
 	t.Parallel()
 
 	reminderTitle := ReminderTitle("")
-	err := reminderTitle.Validate()
-	require.Error(t, err)
+	require.Error(t, reminderTitle.Validate())
 }

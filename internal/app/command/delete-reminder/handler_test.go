@@ -17,9 +17,7 @@ func TestCommandHandler_HandleCommand(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	command := Command{
-		reminderID: 123,
-	}
+	command := NewCommand(reminder_id_model.GenerateReminderID())
 
 	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
 		DeleteReminderMock.
@@ -29,9 +27,7 @@ func TestCommandHandler_HandleCommand(t *testing.T) {
 		Return(nil)
 
 	handler := NewCommandHandler(reminderRepositoryMock)
-
-	err := handler.HandleCommand(t.Context(), command)
-	require.NoError(t, err)
+	require.NoError(t, handler.HandleCommand(t.Context(), command))
 }
 
 func TestCommandHandler_HandleCommand_Error(t *testing.T) {
@@ -39,19 +35,15 @@ func TestCommandHandler_HandleCommand_Error(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	command := Command{
-		reminderID: 123,
-	}
+	reminderID := reminder_id_model.GenerateReminderID()
+
+	command := NewCommand(reminderID)
 
 	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
 		DeleteReminderMock.
-		Inspect(func(ctx context.Context, reminderID reminder_id_model.ReminderID) {
-			require.Equal(t, command.reminderID, reminderID)
-		}).
+		Expect(minimock.AnyContext, reminderID).
 		Return(assert.AnError)
 
 	handler := NewCommandHandler(reminderRepositoryMock)
-
-	err := handler.HandleCommand(t.Context(), command)
-	require.ErrorIs(t, err, assert.AnError)
+	require.ErrorIs(t, handler.HandleCommand(t.Context(), command), assert.AnError)
 }

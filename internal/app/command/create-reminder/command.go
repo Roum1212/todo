@@ -12,11 +12,11 @@ type Command struct {
 	description reminder_description_model.ReminderDescription
 }
 
-func (x Command) GetReminderDescription() reminder_description_model.ReminderDescription {
+func (x Command) GetDescription() reminder_description_model.ReminderDescription {
 	return x.description
 }
 
-func (x Command) GetReminderTitle() reminder_title_model.ReminderTitle {
+func (x Command) GetTitle() reminder_title_model.ReminderTitle {
 	return x.title
 }
 

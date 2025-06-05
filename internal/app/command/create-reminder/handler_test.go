@@ -2,6 +2,7 @@ package create_reminder_command
 
 import (
 	"context"
+	"crypto/rand"
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
@@ -10,6 +11,8 @@ import (
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 	"github.com/Roum1212/todo/internal/domain/aggregate/reminder/mock"
+	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"
+	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
 func TestCommandHandler_HandleCommand(t *testing.T) {
@@ -17,10 +20,13 @@ func TestCommandHandler_HandleCommand(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	command := Command{
-		title:       "title",
-		description: "description",
-	}
+	title, err := reminder_title_model.NewReminderTitle(rand.Text())
+	require.NoError(t, err)
+
+	description, err := reminder_description_model.NewReminderDescription(rand.Text())
+	require.NoError(t, err)
+
+	command := NewCommand(title, description)
 
 	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
 		SaveReminderMock.
@@ -30,10 +36,8 @@ func TestCommandHandler_HandleCommand(t *testing.T) {
 		}).
 		Return(nil)
 
-	handler := NewHandler(reminderRepositoryMock)
-
-	err := handler.HandleCommand(t.Context(), command)
-	require.NoError(t, err)
+	handler := NewCommandHandler(reminderRepositoryMock)
+	require.NoError(t, handler.HandleCommand(t.Context(), command))
 }
 
 func TestCommandHandler_HandleCommand_Error(t *testing.T) {
@@ -41,10 +45,13 @@ func TestCommandHandler_HandleCommand_Error(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	command := Command{
-		title:       "title",
-		description: "description",
-	}
+	title, err := reminder_title_model.NewReminderTitle(rand.Text())
+	require.NoError(t, err)
+
+	description, err := reminder_description_model.NewReminderDescription(rand.Text())
+	require.NoError(t, err)
+
+	command := NewCommand(title, description)
 
 	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
 		SaveReminderMock.
@@ -53,8 +60,6 @@ func TestCommandHandler_HandleCommand_Error(t *testing.T) {
 		}).
 		Return(assert.AnError)
 
-	handler := NewHandler(reminderRepositoryMock)
-
-	err := handler.HandleCommand(t.Context(), command)
-	require.ErrorIs(t, err, assert.AnError)
+	handler := NewCommandHandler(reminderRepositoryMock)
+	require.ErrorIs(t, handler.HandleCommand(t.Context(), command), assert.AnError)
 }

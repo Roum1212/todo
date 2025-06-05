@@ -8,11 +8,11 @@ import (
 	get_all_reminders_quer "github.com/Roum1212/todo/internal/app/query/get-all-reminders"
 )
 
+const Endpoint = "/reminders"
+
 type Handler struct {
 	queryHandler get_all_reminders_quer.QueryHandler
 }
-
-const Endpoint = "/reminders"
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reminders, err := x.queryHandler.HandleQuery(r.Context())

@@ -16,7 +16,7 @@ func (x Query) GetReminderID() reminder_id_model.ReminderID {
 
 func (x Query) Validate() error {
 	if err := x.reminderID.Validate(); err != nil {
-		return fmt.Errorf("invalid reminderID: %w", err)
+		return fmt.Errorf("invalid reminder id: %w", err)
 	}
 
 	return nil

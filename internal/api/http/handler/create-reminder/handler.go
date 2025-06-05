@@ -50,7 +50,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func NewHandler(commandHandler create_reminder_command.CommandHandler) Handler {
+func NewHTTPHandler(commandHandler create_reminder_command.CommandHandler) Handler {
 	return Handler{
 		commandHandler: commandHandler,
 	}

@@ -11,29 +11,23 @@ import (
 func TestNewQuery(t *testing.T) {
 	t.Parallel()
 
-	reminderID, err := reminder_id_model.NewReminderID("123")
+	reminderID, err := reminder_id_model.NewReminderIDFromString("123")
 	require.NoError(t, err)
 
 	query := NewQuery(reminderID)
-	require.Equal(t, reminderID, query.GetReminderID())
+	require.Equal(t, reminderID, query.reminderID)
 }
 
 func TestQuery_Validate(t *testing.T) {
 	t.Parallel()
 
-	query := Query{
-		reminderID: 123,
-	}
-	err := query.Validate()
-	require.NoError(t, err)
+	query := NewQuery(reminder_id_model.GenerateReminderID())
+	require.NoError(t, query.Validate())
 }
 
 func TestQuery_Validate_Error(t *testing.T) {
 	t.Parallel()
 
-	query := Query{
-		reminderID: 0,
-	}
-	err := query.Validate()
-	require.Error(t, err)
+	query := NewQuery(0)
+	require.Error(t, query.Validate())
 }

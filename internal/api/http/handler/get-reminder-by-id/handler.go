@@ -12,9 +12,9 @@ import (
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
-const ParamsID = ":id"
+const Endpoint = "/reminders/" + paramID
 
-const Endpoint = "/reminders/" + ParamsID
+const paramID = ":id"
 
 type Handler struct {
 	queryHandler get_reminder_by_id_quary.QueryHandler
@@ -22,16 +22,20 @@ type Handler struct {
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
-	id := params.ByName(strings.TrimPrefix(ParamsID, ":"))
 
-	reminderID, err := reminder_id_model.NewReminderID(id)
+	reminderID, err := reminder_id_model.NewReminderIDFromString(
+		params.ByName(strings.TrimPrefix(paramID, ":")),
+	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 
 		return
 	}
 
-	reminder, err := x.queryHandler.HandleQuery(r.Context(), get_reminder_by_id_quary.NewQuery(reminderID))
+	reminder, err := x.queryHandler.HandleQuery(
+		r.Context(),
+		get_reminder_by_id_quary.NewQuery(reminderID),
+	)
 	if err != nil {
 		switch {
 		case errors.Is(err, get_reminder_by_id_quary.ErrReminderNotFound):

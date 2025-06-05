@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -22,14 +23,16 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
+	reminderID := reminder_id_model.GenerateReminderID()
+
 	commandHandlerMock := mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
 		Inspect(func(ctx context.Context, c delete_reminder_command.Command) {
-			require.Equal(t, reminder_id_model.ReminderID(123), c.GetReminderID())
+			require.Equal(t, reminderID, c.GetReminderID())
 		}).
 		Return(nil)
 
-	httpHandler := NewHandler(commandHandlerMock)
+	httpHandler := NewHTTPHandler(commandHandlerMock)
 
 	router := httprouter.New()
 	router.Handler(http.MethodDelete, Endpoint, httpHandler)
@@ -37,7 +40,7 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 	r := httptest.NewRequestWithContext(
 		t.Context(),
 		http.MethodDelete,
-		strings.ReplaceAll(Endpoint, paramsID, "123"),
+		strings.ReplaceAll(Endpoint, paramID, strconv.FormatInt(int64(reminderID), 10)),
 		http.NoBody,
 	)
 
@@ -51,11 +54,7 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 	t.Parallel()
 
-	mc := minimock.NewController(t)
-
-	commandHandlerMock := mock.NewCommandHandlerMock(mc)
-
-	httpHandler := NewHandler(commandHandlerMock)
+	httpHandler := NewHTTPHandler(nil)
 
 	router := httprouter.New()
 	router.Handler(http.MethodDelete, Endpoint, httpHandler)
@@ -63,7 +62,7 @@ func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 	r := httptest.NewRequestWithContext(
 		t.Context(),
 		http.MethodDelete,
-		strings.ReplaceAll(Endpoint, paramsID, "abc"),
+		strings.ReplaceAll(Endpoint, paramID, "abc"),
 		http.NoBody,
 	)
 
@@ -79,14 +78,16 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
+	reminderID := reminder_id_model.GenerateReminderID()
+
 	commandHandlerMock := mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
 		Inspect(func(ctx context.Context, c delete_reminder_command.Command) {
-			require.Equal(t, reminder_id_model.ReminderID(123), c.GetReminderID())
+			require.Equal(t, reminderID, c.GetReminderID())
 		}).
 		Return(assert.AnError)
 
-	httpHandler := NewHandler(commandHandlerMock)
+	httpHandler := NewHTTPHandler(commandHandlerMock)
 
 	router := httprouter.New()
 	router.Handler(http.MethodDelete, Endpoint, httpHandler)
@@ -94,7 +95,7 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 	r := httptest.NewRequestWithContext(
 		t.Context(),
 		http.MethodDelete,
-		strings.ReplaceAll(Endpoint, paramsID, "123"),
+		strings.ReplaceAll(Endpoint, paramID, strconv.FormatInt(int64(reminderID), 10)),
 		http.NoBody,
 	)
 

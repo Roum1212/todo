@@ -2,9 +2,11 @@ package get_reminder_by_id_http_handler
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -26,15 +28,16 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	reminderID := reminder_id_model.ReminderID(123)
-	reminderTitle := reminder_title_model.ReminderTitle("title")
-	reminderDescription := reminder_description_model.ReminderDescription("description")
-	reminder := reminder_aggregate.NewReminder(reminderID, reminderTitle, reminderDescription)
+	reminder := reminder_aggregate.NewReminder(
+		reminder_id_model.GenerateReminderID(),
+		reminder_title_model.ReminderTitle(rand.Text()),
+		reminder_description_model.ReminderDescription(rand.Text()),
+	)
 
 	queryHandlerMock := mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
 		Inspect(func(ctx context.Context, q get_reminder_by_id_quary.Query) {
-			require.Equal(t, reminderID, q.GetReminderID())
+			require.Equal(t, reminder.GetID(), q.GetReminderID())
 		}).
 		Return(reminder, nil)
 
@@ -46,7 +49,7 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 	r := httptest.NewRequestWithContext(
 		t.Context(),
 		http.MethodGet,
-		strings.ReplaceAll(Endpoint, ParamsID, "123"),
+		strings.ReplaceAll(Endpoint, paramID, strconv.FormatInt(int64(reminder.GetID()), 10)),
 		http.NoBody,
 	)
 
@@ -57,15 +60,12 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 	require.Equal(t, http.StatusOK, recorder.Code)
 	require.Equal(t, "application/json", recorder.Header().Get("Content-Type"))
 
-	expectedBody := NewReminder(
-		reminder.GetID(),
-		reminder.GetTitle(),
-		reminder.GetDescription())
+	reminderDTO := NewReminder(reminder)
 
-	var gotBody Reminder
-	err := json.NewDecoder(recorder.Body).Decode(&gotBody)
-	require.NoError(t, err)
-	require.Equal(t, expectedBody, gotBody)
+	var gotReminderDTO Reminder
+
+	require.NoError(t, json.NewDecoder(recorder.Body).Decode(&gotReminderDTO))
+	assert.Equal(t, reminderDTO, gotReminderDTO)
 }
 
 func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
@@ -83,7 +83,7 @@ func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 	r := httptest.NewRequestWithContext(
 		t.Context(),
 		http.MethodGet,
-		strings.ReplaceAll(Endpoint, ParamsID, "abc"),
+		strings.ReplaceAll(Endpoint, paramID, "abc"),
 		http.NoBody,
 	)
 
@@ -99,10 +99,12 @@ func TestHandler_ServeHTTP_StatusNotFound(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
+	reminderID := reminder_id_model.GenerateReminderID()
+
 	queryHandlerMock := mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
 		Inspect(func(ctx context.Context, q get_reminder_by_id_quary.Query) {
-			require.Equal(t, reminder_id_model.ReminderID(123), q.GetReminderID())
+			require.Equal(t, reminderID, q.GetReminderID())
 		}).
 		Return(reminder_aggregate.Reminder{}, get_reminder_by_id_quary.ErrReminderNotFound)
 
@@ -114,7 +116,7 @@ func TestHandler_ServeHTTP_StatusNotFound(t *testing.T) {
 	r := httptest.NewRequestWithContext(
 		t.Context(),
 		http.MethodGet,
-		strings.ReplaceAll(Endpoint, ParamsID, "123"),
+		strings.ReplaceAll(Endpoint, paramID, strconv.FormatInt(int64(reminderID), 10)),
 		http.NoBody,
 	)
 
@@ -130,10 +132,12 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
+	reminderID := reminder_id_model.GenerateReminderID()
+
 	queryHandlerMock := mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
 		Inspect(func(ctx context.Context, q get_reminder_by_id_quary.Query) {
-			require.Equal(t, reminder_id_model.ReminderID(123), q.GetReminderID())
+			require.Equal(t, reminderID, q.GetReminderID())
 		}).
 		Return(reminder_aggregate.Reminder{}, assert.AnError)
 
@@ -145,7 +149,7 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 	r := httptest.NewRequestWithContext(
 		t.Context(),
 		http.MethodGet,
-		strings.ReplaceAll(Endpoint, ParamsID, "123"),
+		strings.ReplaceAll(Endpoint, paramID, strconv.FormatInt(int64(reminderID), 10)),
 		http.NoBody,
 	)
 

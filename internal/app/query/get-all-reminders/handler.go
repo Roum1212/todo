@@ -23,7 +23,7 @@ func (x queryHandler) HandleQuery(ctx context.Context) ([]reminder_aggregate.Rem
 	reminders, err := x.repository.GetAllReminders(ctx)
 	if err != nil {
 		switch {
-		case errors.Is(err, reminder_aggregate.ErrRemindersNotFound):
+		case errors.Is(err, reminder_aggregate.ErrReminderNotFound):
 			return nil, ErrRemindersNotFound
 		default:
 			return nil, fmt.Errorf("failed to get all reminders: %w", err)
@@ -33,7 +33,7 @@ func (x queryHandler) HandleQuery(ctx context.Context) ([]reminder_aggregate.Rem
 	return reminders, nil
 }
 
-func NewHandler(repository reminder_aggregate.ReminderRepository) QueryHandler {
+func NewQueryHandler(repository reminder_aggregate.ReminderRepository) QueryHandler {
 	return queryHandler{
 		repository: repository,
 	}

@@ -11,8 +11,7 @@ import (
 func TestNewCommand(t *testing.T) {
 	t.Parallel()
 
-	reminderID, err := reminder_id_model.NewReminderID("123")
-	require.NoError(t, err)
+	reminderID := reminder_id_model.GenerateReminderID()
 
 	command := NewCommand(reminderID)
 	require.Equal(t, reminderID, command.reminderID)
@@ -21,19 +20,13 @@ func TestNewCommand(t *testing.T) {
 func TestCommand_Validate(t *testing.T) {
 	t.Parallel()
 
-	command := Command{
-		reminderID: 123,
-	}
-	err := command.Validate()
-	require.NoError(t, err)
+	command := NewCommand(reminder_id_model.GenerateReminderID())
+	require.NoError(t, command.Validate())
 }
 
 func TestCommand_Validate_Error(t *testing.T) {
 	t.Parallel()
 
-	command := Command{
-		reminderID: 0,
-	}
-	err := command.Validate()
-	require.Error(t, err)
+	command := NewCommand(0)
+	require.Error(t, command.Validate())
 }

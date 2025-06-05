@@ -8,7 +8,7 @@ import (
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
-//go:generate minimock -i CommandHandler -o mock/ -s "_mock.go"
+//go:generate minimock -i CommandHandler -g -o ./mock -p create_reminder_command_mock -s "_minimock.go"
 type CommandHandler interface {
 	HandleCommand(ctx context.Context, command Command) error
 }
@@ -28,7 +28,7 @@ func (x commandHandler) HandleCommand(ctx context.Context, c Command) error {
 	return nil
 }
 
-func NewHandler(repository reminder_aggregate.ReminderRepository) CommandHandler {
+func NewCommandHandler(repository reminder_aggregate.ReminderRepository) CommandHandler {
 	return commandHandler{
 		repository: repository,
 	}

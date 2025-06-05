@@ -33,7 +33,7 @@ func (x queryHandler) HandleQuery(ctx context.Context, q Query) (reminder_aggreg
 	return reminder, nil
 }
 
-func NewHandler(repository reminder_aggregate.ReminderRepository) QueryHandler {
+func NewQueryHandler(repository reminder_aggregate.ReminderRepository) QueryHandler {
 	return queryHandler{
 		repository: repository,
 	}

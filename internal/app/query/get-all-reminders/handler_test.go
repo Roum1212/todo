@@ -1,6 +1,7 @@
 package get_all_reminders_query
 
 import (
+	"crypto/rand"
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
@@ -9,66 +10,38 @@ import (
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 	"github.com/Roum1212/todo/internal/domain/aggregate/reminder/mock"
-	postgresql_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/postgresql"
+	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"
+	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
+	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
 func TestQueryHandler_HandleQuery(t *testing.T) {
 	t.Parallel()
 
-	t.Run("immutable values", func(t *testing.T) {
-		t.Parallel()
+	mc := minimock.NewController(t)
 
-		mc := minimock.NewController(t)
+	reminder1 := reminder_aggregate.NewReminder(
+		reminder_id_model.GenerateReminderID(),
+		reminder_title_model.ReminderTitle(rand.Text()),
+		reminder_description_model.ReminderDescription(rand.Text()),
+	)
+	reminder2 := reminder_aggregate.NewReminder(
+		reminder_id_model.GenerateReminderID(),
+		reminder_title_model.ReminderTitle(rand.Text()),
+		reminder_description_model.ReminderDescription(rand.Text()),
+	)
+	reminders := []reminder_aggregate.Reminder{reminder1, reminder2}
 
-		reminderDTOs := []postgresql_reminder_repository.Reminder{
-			{
-				ID:          123,
-				Title:       "title",
-				Description: "description",
-			},
-			{
-				ID:          456,
-				Title:       "Title",
-				Description: "Description",
-			},
-		}
+	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
+		GetAllRemindersMock.
+		Expect(minimock.AnyContext).
+		Return(reminders, nil)
 
-		reminders, err := postgresql_reminder_repository.NewReminders(reminderDTOs)
-		require.NoError(t, err)
+	handler := NewQueryHandler(reminderRepositoryMock)
 
-		reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
-			GetAllRemindersMock.
-			Return(reminders, nil)
-
-		handler := NewHandler(reminderRepositoryMock)
-
-		reminderSlice, err := handler.HandleQuery(t.Context())
-		require.NoError(t, err)
-		require.Len(t, reminderSlice, len(reminders))
-
-		for i := range reminderSlice {
-			require.Equal(t, reminders[i].GetID(), reminderSlice[i].GetID())
-			require.Equal(t, reminders[i].GetTitle(), reminderSlice[i].GetTitle())
-			require.Equal(t, reminders[i].GetDescription(), reminderSlice[i].GetDescription())
-		}
-	})
-
-	t.Run("nil slice", func(t *testing.T) {
-		t.Parallel()
-
-		mc := minimock.NewController(t)
-
-		reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
-			GetAllRemindersMock.
-			Return(nil, nil)
-
-		handler := NewHandler(reminderRepositoryMock)
-
-		reminderSlice, err := handler.HandleQuery(t.Context())
-		require.NoError(t, err)
-		require.Nil(t, reminderSlice)
-		require.Len(t, reminderSlice, 0)
-	})
+	gotReminders, err := handler.HandleQuery(t.Context())
+	require.NoError(t, err)
+	require.Equal(t, reminders, gotReminders)
 }
 
 func TestQueryHandler_HandleQuery_Error(t *testing.T) {
@@ -78,14 +51,14 @@ func TestQueryHandler_HandleQuery_Error(t *testing.T) {
 
 	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
 		GetAllRemindersMock.
+		Expect(minimock.AnyContext).
 		Return(nil, assert.AnError)
 
-	handler := NewHandler(reminderRepositoryMock)
+	handler := NewQueryHandler(reminderRepositoryMock)
 
-	reminderSlice, err := handler.HandleQuery(t.Context())
+	gotReminders, err := handler.HandleQuery(t.Context())
 	require.Error(t, err)
-	require.Nil(t, reminderSlice)
-	require.Len(t, reminderSlice, 0)
+	require.Empty(t, gotReminders)
 }
 
 func TestQueryHandler_HandleQuery_ErrRemindersNotFound(t *testing.T) {
@@ -95,11 +68,12 @@ func TestQueryHandler_HandleQuery_ErrRemindersNotFound(t *testing.T) {
 
 	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
 		GetAllRemindersMock.
-		Return(nil, reminder_aggregate.ErrRemindersNotFound)
+		Expect(minimock.AnyContext).
+		Return(nil, reminder_aggregate.ErrReminderNotFound)
 
-	handler := NewHandler(reminderRepositoryMock)
+	handler := NewQueryHandler(reminderRepositoryMock)
 
-	reminderSlice, err := handler.HandleQuery(t.Context())
+	gotReminders, err := handler.HandleQuery(t.Context())
 	require.ErrorIs(t, err, ErrRemindersNotFound)
-	require.Nil(t, reminderSlice)
+	require.Empty(t, gotReminders)
 }
