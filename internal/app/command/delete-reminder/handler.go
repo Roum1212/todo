@@ -7,7 +7,7 @@ import (
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 )
 
-//go:generate minimock -i CommandHandler -o mock/ -s "_mock.go"
+//go:generate minimock -i CommandHandler -g -o ./mock -p delete_reminder_command_mock -s "_minimock.go"
 type CommandHandler interface {
 	HandleCommand(ctx context.Context, c Command) error
 }
@@ -17,7 +17,7 @@ type commandHandler struct {
 }
 
 func (x commandHandler) HandleCommand(ctx context.Context, c Command) error {
-	if err := x.repository.DeleteReminder(ctx, c.reminderID); err != nil {
+	if err := x.repository.DeleteReminder(ctx, c.id); err != nil {
 		return fmt.Errorf("failed to delete reminder: %w", err)
 	}
 

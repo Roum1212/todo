@@ -1,7 +1,6 @@
 package delete_reminder_command
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
@@ -17,13 +16,13 @@ func TestCommandHandler_HandleCommand(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	command := NewCommand(reminder_id_model.GenerateReminderID())
+	reminderID := reminder_id_model.GenerateReminderID()
 
-	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
+	command := NewCommand(reminderID)
+
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		DeleteReminderMock.
-		Inspect(func(ctx context.Context, reminderID reminder_id_model.ReminderID) {
-			require.Equal(t, command.reminderID, reminderID)
-		}).
+		Expect(minimock.AnyContext, reminderID).
 		Return(nil)
 
 	handler := NewCommandHandler(reminderRepositoryMock)
@@ -39,7 +38,7 @@ func TestCommandHandler_HandleCommand_Error(t *testing.T) {
 
 	command := NewCommand(reminderID)
 
-	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		DeleteReminderMock.
 		Expect(minimock.AnyContext, reminderID).
 		Return(assert.AnError)

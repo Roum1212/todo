@@ -7,16 +7,16 @@ import (
 )
 
 type Query struct {
-	reminderID reminder_id_model.ReminderID
+	id reminder_id_model.ReminderID
 }
 
-func (x Query) GetReminderID() reminder_id_model.ReminderID {
-	return x.reminderID
+func (x Query) GetID() reminder_id_model.ReminderID {
+	return x.id
 }
 
 func (x Query) Validate() error {
-	if err := x.reminderID.Validate(); err != nil {
-		return fmt.Errorf("invalid reminder id: %w", err)
+	if err := x.id.Validate(); err != nil {
+		return fmt.Errorf("invalid id: %w", err)
 	}
 
 	return nil
@@ -24,6 +24,6 @@ func (x Query) Validate() error {
 
 func NewQuery(reminderID reminder_id_model.ReminderID) Query {
 	return Query{
-		reminderID: reminderID,
+		id: reminderID,
 	}
 }

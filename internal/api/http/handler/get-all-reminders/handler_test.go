@@ -36,11 +36,12 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 	)
 	reminders := []reminder_aggregate.Reminder{reminder1, reminder2}
 
-	queryHandlerMock := mock.NewQueryHandlerMock(mc).
+	queryHandlerMock := get_all_reminders_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
+		Expect(minimock.AnyContext).
 		Return(reminders, nil)
 
-	httpHandler := NewHandler(queryHandlerMock)
+	httpHandler := NewHTTPHandler(queryHandlerMock)
 
 	r := httptest.NewRequestWithContext(
 		t.Context(),
@@ -69,11 +70,12 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	queryHandlerMock := mock.NewQueryHandlerMock(mc).
+	queryHandlerMock := get_all_reminders_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
+		Expect(minimock.AnyContext).
 		Return(nil, assert.AnError)
 
-	httpHandler := NewHandler(queryHandlerMock)
+	httpHandler := NewHTTPHandler(queryHandlerMock)
 
 	r := httptest.NewRequestWithContext(
 		t.Context(),
@@ -94,11 +96,12 @@ func TestHandler_ServeHTTP_StatusNotFound(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	queryHandlerMock := mock.NewQueryHandlerMock(mc).
+	queryHandlerMock := get_all_reminders_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
-		Return(nil, get_all_reminders_query.ErrRemindersNotFound)
+		Expect(minimock.AnyContext).
+		Return(nil, get_all_reminders_query.ErrReminderNotFound)
 
-	httpHandler := NewHandler(queryHandlerMock)
+	httpHandler := NewHTTPHandler(queryHandlerMock)
 
 	r := httptest.NewRequestWithContext(
 		t.Context(),

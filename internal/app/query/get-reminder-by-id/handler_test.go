@@ -29,7 +29,7 @@ func TestQueryHandler_HandleQuery(t *testing.T) {
 
 	query := NewQuery(reminderID)
 
-	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		GetReminderByIDMock.
 		Expect(minimock.AnyContext, reminderID).
 		Return(reminder, nil)
@@ -50,7 +50,7 @@ func TestQueryHandler_HandleQuery_Err(t *testing.T) {
 
 	query := NewQuery(reminderID)
 
-	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		GetReminderByIDMock.
 		Expect(minimock.AnyContext, reminderID).
 		Return(reminder_aggregate.Reminder{}, assert.AnError)
@@ -71,7 +71,7 @@ func TestQueryHandler_HandlerQuery_ErrReminderNotFound(t *testing.T) {
 
 	query := NewQuery(reminderID)
 
-	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		GetReminderByIDMock.
 		Expect(minimock.AnyContext, reminderID).
 		Return(reminder_aggregate.Reminder{}, reminder_aggregate.ErrReminderNotFound)

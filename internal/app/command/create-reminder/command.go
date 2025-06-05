@@ -33,11 +33,11 @@ func (x Command) Validate() error {
 }
 
 func NewCommand(
-	title reminder_title_model.ReminderTitle,
-	description reminder_description_model.ReminderDescription,
+	reminderTitle reminder_title_model.ReminderTitle,
+	reminderDescription reminder_description_model.ReminderDescription,
 ) Command {
 	return Command{
-		title:       title,
-		description: description,
+		title:       reminderTitle,
+		description: reminderDescription,
 	}
 }

@@ -10,7 +10,7 @@ import (
 
 var ErrReminderNotFound = errors.New("reminder not found")
 
-//go:generate minimock -i QueryHandler -o mock/ -s "_mock.go"
+//go:generate minimock -i QueryHandler -g -o ./mock -p get_reminder_by_id_query_mock -s "_minimock.go"
 type QueryHandler interface {
 	HandleQuery(ctx context.Context, q Query) (reminder_aggregate.Reminder, error)
 }
@@ -20,7 +20,7 @@ type queryHandler struct {
 }
 
 func (x queryHandler) HandleQuery(ctx context.Context, q Query) (reminder_aggregate.Reminder, error) {
-	reminder, err := x.repository.GetReminderByID(ctx, q.reminderID)
+	reminder, err := x.repository.GetReminderByID(ctx, q.id)
 	if err != nil {
 		switch {
 		case errors.Is(err, reminder_aggregate.ErrReminderNotFound):

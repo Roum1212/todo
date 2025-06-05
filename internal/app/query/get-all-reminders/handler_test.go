@@ -32,7 +32,7 @@ func TestQueryHandler_HandleQuery(t *testing.T) {
 	)
 	reminders := []reminder_aggregate.Reminder{reminder1, reminder2}
 
-	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		GetAllRemindersMock.
 		Expect(minimock.AnyContext).
 		Return(reminders, nil)
@@ -49,7 +49,7 @@ func TestQueryHandler_HandleQuery_Error(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		GetAllRemindersMock.
 		Expect(minimock.AnyContext).
 		Return(nil, assert.AnError)
@@ -66,7 +66,7 @@ func TestQueryHandler_HandleQuery_ErrRemindersNotFound(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		GetAllRemindersMock.
 		Expect(minimock.AnyContext).
 		Return(nil, reminder_aggregate.ErrReminderNotFound)
@@ -74,6 +74,6 @@ func TestQueryHandler_HandleQuery_ErrRemindersNotFound(t *testing.T) {
 	handler := NewQueryHandler(reminderRepositoryMock)
 
 	gotReminders, err := handler.HandleQuery(t.Context())
-	require.ErrorIs(t, err, ErrRemindersNotFound)
+	require.ErrorIs(t, err, ErrReminderNotFound)
 	require.Empty(t, gotReminders)
 }

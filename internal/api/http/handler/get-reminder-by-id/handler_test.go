@@ -1,7 +1,6 @@
 package get_reminder_by_id_http_handler
 
 import (
-	"context"
 	"crypto/rand"
 	"encoding/json"
 	"net/http"
@@ -28,20 +27,19 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
+	reminderID := reminder_id_model.GenerateReminderID()
 	reminder := reminder_aggregate.NewReminder(
-		reminder_id_model.GenerateReminderID(),
+		reminderID,
 		reminder_title_model.ReminderTitle(rand.Text()),
 		reminder_description_model.ReminderDescription(rand.Text()),
 	)
 
-	queryHandlerMock := mock.NewQueryHandlerMock(mc).
+	queryHandlerMock := get_reminder_by_id_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
-		Inspect(func(ctx context.Context, q get_reminder_by_id_quary.Query) {
-			require.Equal(t, reminder.GetID(), q.GetReminderID())
-		}).
+		Expect(minimock.AnyContext, get_reminder_by_id_quary.NewQuery(reminderID)).
 		Return(reminder, nil)
 
-	httpHandler := NewHandler(queryHandlerMock)
+	httpHandler := NewHTTPHandler(queryHandlerMock)
 
 	router := httprouter.New()
 	router.Handler(http.MethodGet, Endpoint, httpHandler)
@@ -71,11 +69,7 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
 	t.Parallel()
 
-	mc := minimock.NewController(t)
-
-	queryHandlerMock := mock.NewQueryHandlerMock(mc)
-
-	httpHandler := NewHandler(queryHandlerMock)
+	httpHandler := NewHTTPHandler(nil)
 
 	router := httprouter.New()
 	router.Handler(http.MethodGet, Endpoint, httpHandler)
@@ -101,14 +95,12 @@ func TestHandler_ServeHTTP_StatusNotFound(t *testing.T) {
 
 	reminderID := reminder_id_model.GenerateReminderID()
 
-	queryHandlerMock := mock.NewQueryHandlerMock(mc).
+	queryHandlerMock := get_reminder_by_id_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
-		Inspect(func(ctx context.Context, q get_reminder_by_id_quary.Query) {
-			require.Equal(t, reminderID, q.GetReminderID())
-		}).
+		Expect(minimock.AnyContext, get_reminder_by_id_quary.NewQuery(reminderID)).
 		Return(reminder_aggregate.Reminder{}, get_reminder_by_id_quary.ErrReminderNotFound)
 
-	httpHandler := NewHandler(queryHandlerMock)
+	httpHandler := NewHTTPHandler(queryHandlerMock)
 
 	router := httprouter.New()
 	router.Handler(http.MethodGet, Endpoint, httpHandler)
@@ -134,14 +126,12 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 
 	reminderID := reminder_id_model.GenerateReminderID()
 
-	queryHandlerMock := mock.NewQueryHandlerMock(mc).
+	queryHandlerMock := get_reminder_by_id_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
-		Inspect(func(ctx context.Context, q get_reminder_by_id_quary.Query) {
-			require.Equal(t, reminderID, q.GetReminderID())
-		}).
+		Expect(minimock.AnyContext, get_reminder_by_id_quary.NewQuery(reminderID)).
 		Return(reminder_aggregate.Reminder{}, assert.AnError)
 
-	httpHandler := NewHandler(queryHandlerMock)
+	httpHandler := NewHTTPHandler(queryHandlerMock)
 
 	router := httprouter.New()
 	router.Handler(http.MethodGet, Endpoint, httpHandler)

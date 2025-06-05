@@ -49,11 +49,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	reminderDTO := NewReminder(
-		reminder.GetID(),
-		reminder.GetTitle(),
-		reminder.GetDescription(),
-	)
+	reminderDTO := NewReminder(reminder)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -61,7 +57,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(reminderDTO) //nolint:errcheck,errchkjson // OK.
 }
 
-func NewHandler(queryHandler get_reminder_by_id_quary.QueryHandler) Handler {
+func NewHTTPHandler(queryHandler get_reminder_by_id_quary.QueryHandler) Handler {
 	return Handler{
 		queryHandler: queryHandler,
 	}

@@ -1,7 +1,6 @@
 package delete_reminder_http_handler
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -25,11 +24,9 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 
 	reminderID := reminder_id_model.GenerateReminderID()
 
-	commandHandlerMock := mock.NewCommandHandlerMock(mc).
+	commandHandlerMock := delete_reminder_command_mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
-		Inspect(func(ctx context.Context, c delete_reminder_command.Command) {
-			require.Equal(t, reminderID, c.GetReminderID())
-		}).
+		Expect(minimock.AnyContext, delete_reminder_command.NewCommand(reminderID)).
 		Return(nil)
 
 	httpHandler := NewHTTPHandler(commandHandlerMock)
@@ -80,11 +77,9 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 
 	reminderID := reminder_id_model.GenerateReminderID()
 
-	commandHandlerMock := mock.NewCommandHandlerMock(mc).
+	commandHandlerMock := delete_reminder_command_mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
-		Inspect(func(ctx context.Context, c delete_reminder_command.Command) {
-			require.Equal(t, reminderID, c.GetReminderID())
-		}).
+		Expect(minimock.AnyContext, delete_reminder_command.NewCommand(reminderID)).
 		Return(assert.AnError)
 
 	httpHandler := NewHTTPHandler(commandHandlerMock)

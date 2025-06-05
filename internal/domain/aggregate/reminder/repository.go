@@ -9,7 +9,7 @@ import (
 
 var ErrReminderNotFound = errors.New("reminder not found")
 
-//go:generate minimock -i ReminderRepository -o mock/ -s "_mock.go"
+//go:generate minimock -i ReminderRepository -g -o ./mock -p reminder_aggregate_mock -s "_minimock.go"
 type ReminderRepository interface {
 	DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error
 	GetReminderByID(ctx context.Context, reminderID reminder_id_model.ReminderID) (Reminder, error)

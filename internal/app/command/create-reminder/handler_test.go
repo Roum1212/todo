@@ -1,7 +1,6 @@
 package create_reminder_command
 
 import (
-	"context"
 	"crypto/rand"
 	"testing"
 
@@ -12,6 +11,7 @@ import (
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 	"github.com/Roum1212/todo/internal/domain/aggregate/reminder/mock"
 	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"
+	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
@@ -28,12 +28,11 @@ func TestCommandHandler_HandleCommand(t *testing.T) {
 
 	command := NewCommand(title, description)
 
-	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
+	reminder := reminder_aggregate.NewReminder(reminder_id_model.GenerateReminderID(), title, description)
+
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		SaveReminderMock.
-		Inspect(func(ctx context.Context, reminder reminder_aggregate.Reminder) {
-			require.Equal(t, command.title, reminder.GetTitle())
-			require.Equal(t, command.description, reminder.GetDescription())
-		}).
+		Expect(minimock.AnyContext, reminder).
 		Return(nil)
 
 	handler := NewCommandHandler(reminderRepositoryMock)
@@ -53,11 +52,11 @@ func TestCommandHandler_HandleCommand_Error(t *testing.T) {
 
 	command := NewCommand(title, description)
 
-	reminderRepositoryMock := mock.NewReminderRepositoryMock(mc).
+	reminder := reminder_aggregate.NewReminder(reminder_id_model.GenerateReminderID(), title, description)
+
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		SaveReminderMock.
-		Inspect(func(ctx context.Context, reminder reminder_aggregate.Reminder) {
-			require.Equal(t, command.title, reminder.GetTitle())
-		}).
+		Expect(minimock.AnyContext, reminder).
 		Return(assert.AnError)
 
 	handler := NewCommandHandler(reminderRepositoryMock)

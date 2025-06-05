@@ -8,9 +8,9 @@ import (
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 )
 
-var ErrRemindersNotFound = errors.New("reminders not found")
+var ErrReminderNotFound = errors.New("reminders not found")
 
-//go:generate minimock -i QueryHandler -o mock/ -s "_mock.go"
+//go:generate minimock -i QueryHandler -g -o ./mock -p get_all_reminders_query_mock -s "_minimock.go"
 type QueryHandler interface {
 	HandleQuery(ctx context.Context) ([]reminder_aggregate.Reminder, error)
 }
@@ -24,7 +24,7 @@ func (x queryHandler) HandleQuery(ctx context.Context) ([]reminder_aggregate.Rem
 	if err != nil {
 		switch {
 		case errors.Is(err, reminder_aggregate.ErrReminderNotFound):
-			return nil, ErrRemindersNotFound
+			return nil, ErrReminderNotFound
 		default:
 			return nil, fmt.Errorf("failed to get all reminders: %w", err)
 		}

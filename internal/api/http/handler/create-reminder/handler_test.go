@@ -34,7 +34,7 @@ func TestHandler_ServeHTTP_Created(t *testing.T) {
 	description, err := reminder_description_model.NewReminderDescription(request.Description)
 	require.NoError(t, err)
 
-	commandHandlerMock := mock.NewCommandHandlerMock(mc).
+	commandHandlerMock := create_reminder_command_mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
 		Expect(minimock.AnyContext, create_reminder_command.NewCommand(title, description)).
 		Return(nil)
@@ -157,7 +157,7 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 	description, err := reminder_description_model.NewReminderDescription(request.Description)
 	require.NoError(t, err)
 
-	commandHandlerMock := mock.NewCommandHandlerMock(mc).
+	commandHandlerMock := create_reminder_command_mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
 		Expect(minimock.AnyContext, create_reminder_command.NewCommand(title, description)).
 		Return(assert.AnError)
