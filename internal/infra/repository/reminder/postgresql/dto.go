@@ -1,6 +1,8 @@
 package postgresql_reminder_repository
 
 import (
+	"fmt"
+
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
@@ -8,20 +10,59 @@ import (
 )
 
 type Reminder struct {
-	ID          int    `json:"id"`
+	ID          int64  `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 }
 
-func NewReminders(reminderDTOs []Reminder) []reminder_aggregate.Reminder {
-	reminders := make([]reminder_aggregate.Reminder, len(reminderDTOs))
-	for i := range reminderDTOs {
-		reminders[i] = reminder_aggregate.NewReminder(
-			reminder_id_model.ReminderID(reminderDTOs[i].ID),
-			reminder_title_model.NewReminderTitle(reminderDTOs[i].Title),
-			reminder_description_model.NewReminderDescription(reminderDTOs[i].Description),
-		)
+func NewReminder(reminder reminder_aggregate.Reminder) Reminder {
+	return Reminder{
+		ID:          int64(reminder.GetID()),
+		Title:       string(reminder.GetTitle()),
+		Description: string(reminder.GetDescription()),
+	}
+}
+
+func NewReminders(reminders ...reminder_aggregate.Reminder) []Reminder {
+	reminderDTOs := make([]Reminder, len(reminders))
+
+	for i := range reminders {
+		reminderDTOs[i] = NewReminder(reminders[i])
 	}
 
-	return reminders
+	return reminderDTOs
+}
+
+func ToReminder(reminderDTO Reminder) (reminder_aggregate.Reminder, error) {
+	id, err := reminder_id_model.NewReminderID(reminderDTO.ID)
+	if err != nil {
+		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to create reminder id: %w", err)
+	}
+
+	title, err := reminder_title_model.NewReminderTitle(reminderDTO.Title)
+	if err != nil {
+		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to create reminder title: %w", err)
+	}
+
+	description, err := reminder_description_model.NewReminderDescription(reminderDTO.Description)
+	if err != nil {
+		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to create reminder description: %w", err)
+	}
+
+	return reminder_aggregate.NewReminder(id, title, description), nil
+}
+
+func ToReminders(reminderDTOs ...Reminder) ([]reminder_aggregate.Reminder, error) {
+	reminders := make([]reminder_aggregate.Reminder, len(reminderDTOs))
+
+	for i := range reminderDTOs {
+		reminder, err := ToReminder(reminderDTOs[i])
+		if err != nil {
+			return nil, fmt.Errorf("failed to create reminder: %w", err)
+		}
+
+		reminders[i] = reminder
+	}
+
+	return reminders, nil
 }

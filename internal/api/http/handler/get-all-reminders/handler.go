@@ -2,23 +2,31 @@ package get_all_reminders_http_handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	get_all_reminders_quer "github.com/Roum1212/todo/internal/app/query/get-all-reminders"
 )
 
-type Handler struct {
-	queryHandler get_all_reminders_quer.Handler
-}
-
 const Endpoint = "/reminders"
 
-func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	reminders, err := x.queryHandler.Handle(r.Context())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+type Handler struct {
+	queryHandler get_all_reminders_quer.QueryHandler
+}
 
-		return
+func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	reminders, err := x.queryHandler.HandleQuery(r.Context())
+	if err != nil {
+		switch {
+		case errors.Is(err, get_all_reminders_quer.ErrReminderNotFound):
+			http.Error(w, err.Error(), http.StatusNotFound)
+
+			return
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+			return
+		}
 	}
 
 	reminderDTOs := NewReminderDTOs(reminders)
@@ -29,7 +37,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(reminderDTOs) //nolint:errcheck,errchkjson // OK.
 }
 
-func NewHandler(queryHandler get_all_reminders_quer.Handler) Handler {
+func NewHTTPHandler(queryHandler get_all_reminders_quer.QueryHandler) Handler {
 	return Handler{
 		queryHandler: queryHandler,
 	}

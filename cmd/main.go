@@ -46,15 +46,15 @@ func main() {
 
 	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
 
-	createReminderCommand := create_reminder_command.NewHandler(reminderRepository)
-	deleteReminderCommand := delete_reminder_command.NewHandler(reminderRepository)
-	getReminderByIDQuery := get_reminder_by_id_quary.NewHandler(reminderRepository)
-	getAllRemindersQuery := get_all_reminders_query.NewHandler(reminderRepository)
+	createReminderCommand := create_reminder_command.NewCommandHandler(reminderRepository)
+	deleteReminderCommand := delete_reminder_command.NewCommandHandler(reminderRepository)
+	getReminderByIDQuery := get_reminder_by_id_quary.NewQueryHandler(reminderRepository)
+	getAllRemindersQuery := get_all_reminders_query.NewQueryHandler(reminderRepository)
 
-	createReminderHTTPHandler := create_reminder_http_handler.NewHandler(createReminderCommand)
-	deleteReminderHTTPHandler := delete_reminder_http_handler.NewHandler(deleteReminderCommand)
-	getReminderByIDHTTPHandler := get_reminder_by_id_http_handler.NewHandler(getReminderByIDQuery)
-	getAllRemindersHTTPHandler := get_all_reminders_http_handler.NewHandler(getAllRemindersQuery)
+	createReminderHTTPHandler := create_reminder_http_handler.NewHTTPHandler(createReminderCommand)
+	deleteReminderHTTPHandler := delete_reminder_http_handler.NewHTTPHandler(deleteReminderCommand)
+	getReminderByIDHTTPHandler := get_reminder_by_id_http_handler.NewHTTPHandler(getReminderByIDQuery)
+	getAllRemindersHTTPHandler := get_all_reminders_http_handler.NewHTTPHandler(getAllRemindersQuery)
 
 	router := httprouter.New()
 	router.Handler(http.MethodPost, create_reminder_http_handler.Endpoint, createReminderHTTPHandler)
