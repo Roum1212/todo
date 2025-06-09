@@ -2,6 +2,7 @@ package create_reminder_http_handler
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	create_reminder_command "github.com/Roum1212/todo/internal/app/command/create-reminder"
@@ -17,6 +18,8 @@ type Handler struct {
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var request Request
+
+	slog.Info("Test log")
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

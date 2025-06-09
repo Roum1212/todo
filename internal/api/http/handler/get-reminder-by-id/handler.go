@@ -3,6 +3,7 @@ package get_reminder_by_id_http_handler
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -21,6 +22,7 @@ type Handler struct {
 }
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	slog.InfoContext(r.Context(), "handle request", slog.Any("request", r))
 	params := httprouter.ParamsFromContext(r.Context())
 
 	reminderID, err := reminder_id_model.NewReminderIDFromString(
@@ -28,6 +30,13 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		slog.WarnContext(
+			r.Context(),
+			"incorrect reminder id",
+			slog.Any("error", err),
+			slog.String("URL", r.URL.String()),
+			slog.String("method", r.Method),
+		)
 
 		return
 	}
@@ -40,10 +49,24 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, get_reminder_by_id_quary.ErrReminderNotFound):
 			http.Error(w, err.Error(), http.StatusNotFound)
+			slog.WarnContext(
+				r.Context(),
+				"failed to find reminder",
+				slog.Any("error", err),
+				slog.String("URL", r.URL.String()),
+				slog.String("Method", r.Method),
+			)
 
 			return
 		default:
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			slog.ErrorContext(
+				r.Context(),
+				"failed to process request",
+				slog.Any("error", err),
+				slog.String("URL", r.URL.String()),
+				slog.String("Method", r.Method),
+			)
 
 			return
 		}
@@ -55,6 +78,14 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	_ = json.NewEncoder(w).Encode(reminderDTO) //nolint:errcheck,errchkjson // OK.
+	{
+		slog.InfoContext(
+			r.Context(),
+			"successfully retrieved reminder",
+			slog.String("URL", r.URL.String()),
+			slog.String("method", r.Method),
+		)
+	}
 }
 
 func NewHTTPHandler(queryHandler get_reminder_by_id_quary.QueryHandler) Handler {
