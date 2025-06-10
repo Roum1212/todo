@@ -2,8 +2,9 @@ package create_reminder_http_handler
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
+
+	"go.opentelemetry.io/otel"
 
 	create_reminder_command "github.com/Roum1212/todo/internal/app/command/create-reminder"
 	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"
@@ -12,14 +13,19 @@ import (
 
 const Endpoint = "/reminders"
 
+const tracerName = "create_reminder_http_handler"
+
 type Handler struct {
 	commandHandler create_reminder_command.CommandHandler
 }
 
 func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var request Request
+	tracer := otel.Tracer(tracerName)
+	ctx, span := tracer.Start(r.Context(), "Handler.ServeHTTP")
 
-	slog.Info("Test log")
+	defer span.End()
+
+	var request Request
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -42,7 +48,7 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = x.commandHandler.HandleCommand(
-		r.Context(),
+		ctx,
 		create_reminder_command.NewCommand(reminderTitle, reminderDescription),
 	); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

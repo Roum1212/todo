@@ -29,7 +29,6 @@ type Config struct {
 	HTTPServer    ServerConfig `envPrefix:"HTTP_SERVER_"`
 	OpenTelemetry ServerConfig `envPrefix:"OPENTELEMETRY_"`
 	PostgreSQL    DBConfig     `envPrefix:"POSTGRESQL_"`
-	Server        ServerConfig `envPrefix:"SERVER_"`
 }
 
 type DBConfig struct {
@@ -38,7 +37,6 @@ type DBConfig struct {
 
 type ServerConfig struct {
 	Address string `env:"ADDRESS"`
-	Version string `env:"VERSION"`
 }
 
 const (
@@ -53,21 +51,24 @@ func main() {
 	var cfg Config
 	if err := env.Parse(&cfg); err != nil {
 		slog.ErrorContext(ctx, "failed to parse config", slog.Any("error", err))
-		return //nolint:nlreturn // OK.
+
+		return
 	}
 
 	// OpenTelemetry | Resource.
 	openTelemetryResource, err := opentelemetry.NewResource(ctx)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to initialize OpenTelemetry resource", slog.Any("error", err))
-		return //nolint:nlreturn // OK.
+
+		return
 	}
 
 	// OpenTelemetry | Logger Provider.
 	openTelemetryLoggerProvider, err := opentelemetry.NewLoggerProvider(ctx, openTelemetryResource)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to initialize OpenTelemetry logger provider", slog.Any("error", err))
-		return //nolint:nlreturn // OK.
+
+		return
 	}
 
 	defer func() {
@@ -84,7 +85,8 @@ func main() {
 	openTelemetryMeterProvider, err := opentelemetry.NewMeterProvider(ctx, openTelemetryResource)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to initialize OpenTelemetry meter", slog.Any("error", err))
-		return //nolint:nlreturn // OK.
+
+		return
 	}
 
 	defer func() {
@@ -95,7 +97,8 @@ func main() {
 	openTelemetryTracerProvider, err := opentelemetry.NewTracerProvider(ctx, openTelemetryResource)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to initialize OpenTelemetry tracer", slog.Any("error", err))
-		return //nolint:nlreturn // OK.
+
+		return
 	}
 
 	defer func() {
@@ -108,10 +111,9 @@ func main() {
 	pool, err := pgxpool.New(ctx, cfg.PostgreSQL.DSN)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to initialize PostgreSQL connection", slog.Any("error", err))
-		return //nolint:nlreturn // OK.
-	}
 
-	slog.InfoContext(ctx, "successfully initialized PostgreSQL connection")
+		return
+	}
 
 	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
 
@@ -131,21 +133,16 @@ func main() {
 	router.Handler(http.MethodGet, get_reminder_by_id_http_handler.Endpoint, getReminderByIDHTTPHandler)
 	router.Handler(http.MethodGet, get_all_reminders_http_handler.Endpoint, getAllRemindersHTTPHandler)
 
-	slog.InfoContext(
-		ctx, "HTTP server starting",
-		slog.String("address", cfg.HTTPServer.Address),
-		slog.String("server version", cfg.Server.Version),
-	)
-
 	srv := &http.Server{
 		Addr:         cfg.HTTPServer.Address,
-		Handler:      otelhttp.NewHandler(cors.New(cors.Options{}).Handler(router), ""),
+		Handler:      otelhttp.NewHandler(cors.New(cors.Options{}).Handler(router), "HTTP Server"),
 		WriteTimeout: WriteTimeout,
 		ReadTimeout:  ReadTimeout,
 		IdleTimeout:  IdleTimeout,
 	}
 	if err = srv.ListenAndServe(); err != nil {
-		slog.Error("failed to start HTTP server", "error", err)
-		return //nolint:nlreturn // OK.
+		slog.Error("failed to start HTTP server", slog.Any("error", err))
+
+		return
 	}
 }

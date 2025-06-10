@@ -147,6 +147,7 @@ linters:
             - github.com/rs/cors
             - go.opentelemetry.io/contrib/bridges/otelslog
             - go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp
+            - go.opentelemetry.io/otel
           files:
             - "!$test"
         main:

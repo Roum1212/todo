@@ -9,6 +9,7 @@ import (
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.opentelemetry.io/otel"
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
@@ -22,11 +23,18 @@ const (
 	fieldDescription = "description"
 )
 
+const tracerName = "postgresql_reminder_repository"
+
 type Repository struct {
 	client *pgxpool.Pool
 }
 
 func (x Repository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
+	tracer := otel.Tracer(tracerName)
+	_, span := tracer.Start(ctx, "Repository.SaveReminder")
+
+	defer span.End()
+
 	reminderDTO := NewReminder(reminder)
 
 	sql, args, err := squirrel.
