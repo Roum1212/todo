@@ -1,6 +1,7 @@
 package reminder_id_model
 
 import (
+	"crypto/rand"
 	"testing"
 	"time"
 
@@ -29,6 +30,17 @@ func TestNewReminderID(t *testing.T) {
 	require.Equal(t, v, int64(reminderID))
 }
 
+func TestNewReminderID_Error(t *testing.T) {
+	t.Parallel()
+
+	var v int64
+	v = 0
+
+	reminderID, err := NewReminderID(v)
+	require.Error(t, err)
+	require.Empty(t, reminderID)
+}
+
 func TestReminderID_Validate(t *testing.T) {
 	t.Parallel()
 
@@ -44,4 +56,24 @@ func TestReminderID_Validate_Error(t *testing.T) {
 
 	reminderID := ReminderID(0)
 	require.Error(t, reminderID.Validate())
+}
+
+func TestReminderIDFromString(t *testing.T) {
+	t.Parallel()
+
+	s := "123"
+
+	reminderID, err := NewReminderIDFromString(s)
+	require.NoError(t, err)
+	require.Equal(t, int64(123), int64(reminderID))
+}
+
+func TestReminderIDFromString_Error(t *testing.T) {
+	t.Parallel()
+
+	s := rand.Text()
+
+	reminderID, err := NewReminderIDFromString(s)
+	require.Error(t, err)
+	require.Empty(t, reminderID)
 }

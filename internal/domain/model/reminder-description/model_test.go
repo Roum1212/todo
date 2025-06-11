@@ -17,6 +17,16 @@ func TestNewReminderDescription(t *testing.T) {
 	require.Equal(t, s, string(reminderDescription))
 }
 
+func TestNewReminderDescription_Error(t *testing.T) {
+	t.Parallel()
+
+	s := ""
+
+	reminderDescription, err := NewReminderDescription(s)
+	require.Error(t, err)
+	require.Empty(t, reminderDescription)
+}
+
 func TestReminderDescription_Validate(t *testing.T) {
 	t.Parallel()
 

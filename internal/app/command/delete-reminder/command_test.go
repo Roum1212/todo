@@ -14,7 +14,7 @@ func TestNewCommand(t *testing.T) {
 	reminderID := reminder_id_model.GenerateReminderID()
 
 	command := NewCommand(reminderID)
-	require.Equal(t, reminderID, command.id)
+	require.Equal(t, reminderID, command.GetID())
 }
 
 func TestCommand_Validate(t *testing.T) {

@@ -12,7 +12,7 @@ import (
 	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
-func TestNewReminder(t *testing.T) {
+func TestReminder(t *testing.T) {
 	t.Parallel()
 
 	id, err := reminder_id_model.NewReminderID(time.Now().Unix())
@@ -25,7 +25,7 @@ func TestNewReminder(t *testing.T) {
 	require.NoError(t, err)
 
 	reminder := NewReminder(id, title, description)
-	require.Equal(t, id, reminder.id)
-	require.Equal(t, title, reminder.title)
-	require.Equal(t, description, reminder.description)
+	require.Equal(t, id, reminder.GetID())
+	require.Equal(t, title, reminder.GetTitle())
+	require.Equal(t, description, reminder.GetDescription())
 }

@@ -77,3 +77,59 @@ func TestQueryHandler_HandleQuery_ErrRemindersNotFound(t *testing.T) {
 	require.ErrorIs(t, err, ErrReminderNotFound)
 	require.Empty(t, gotReminders)
 }
+
+func TestTracerQueryHandler_HandleQuery(t *testing.T) {
+	t.Parallel()
+
+	mc := minimock.NewController(t)
+
+	reminder1 := reminder_aggregate.NewReminder(
+		reminder_id_model.GenerateReminderID(),
+		reminder_title_model.ReminderTitle(rand.Text()),
+		reminder_description_model.ReminderDescription(rand.Text()),
+	)
+	reminder2 := reminder_aggregate.NewReminder(
+		reminder_id_model.GenerateReminderID(),
+		reminder_title_model.ReminderTitle(rand.Text()),
+		reminder_description_model.ReminderDescription(rand.Text()),
+	)
+	reminders := []reminder_aggregate.Reminder{reminder1, reminder2}
+
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
+		GetAllRemindersMock.
+		Expect(minimock.AnyContext).
+		Return(reminders, nil)
+
+	handler := NewQueryHandler(reminderRepositoryMock)
+
+	gotReminders, err := handler.HandleQuery(t.Context())
+	require.NoError(t, err)
+	require.Equal(t, reminders, gotReminders)
+
+	handlerTracer := NewQueryHandlerTracer(handler)
+	gotReminders, err = handlerTracer.HandleQuery(t.Context())
+	require.NoError(t, err)
+	require.Equal(t, reminders, gotReminders)
+}
+
+func TestTracerQueryHandler_HandleQuery_Error(t *testing.T) {
+	t.Parallel()
+
+	mc := minimock.NewController(t)
+
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
+		GetAllRemindersMock.
+		Expect(minimock.AnyContext).
+		Return(nil, assert.AnError)
+
+	handler := NewQueryHandler(reminderRepositoryMock)
+
+	gotReminders, err := handler.HandleQuery(t.Context())
+	require.Error(t, err)
+	require.Empty(t, gotReminders)
+
+	handlerTracer := NewQueryHandlerTracer(handler)
+	gotReminders, err = handlerTracer.HandleQuery(t.Context())
+	require.ErrorIs(t, err, assert.AnError)
+	require.Empty(t, gotReminders)
+}
