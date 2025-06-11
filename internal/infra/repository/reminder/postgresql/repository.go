@@ -149,6 +149,7 @@ func (x tracerRepository) SaveReminder(ctx context.Context, reminder reminder_ag
 
 	if err := x.repository.SaveReminder(ctx, reminder); err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 
 		return err
 	}
@@ -162,6 +163,7 @@ func (x tracerRepository) DeleteReminder(ctx context.Context, reminderID reminde
 
 	if err := x.repository.DeleteReminder(ctx, reminderID); err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 
 		return err
 	}
@@ -176,6 +178,7 @@ func (x tracerRepository) GetAllReminders(ctx context.Context) ([]reminder_aggre
 	reminders, err := x.repository.GetAllReminders(ctx)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 
 		return nil, err
 	}
