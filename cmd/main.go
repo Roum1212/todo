@@ -120,14 +120,20 @@ func main() {
 
 	createReminderCommand := create_reminder_command.NewCommandHandler(reminderRepository)
 	createReminderCommand = create_reminder_command.NewCommandHandlerWithTracing(createReminderCommand)
+
 	deleteReminderCommand := delete_reminder_command.NewCommandHandler(reminderRepository)
-	getReminderByIDQuery := get_reminder_by_id_quary.NewQueryHandler(reminderRepository)
+	deleteReminderCommand = delete_reminder_command.NewCommandHandlerTracer(deleteReminderCommand)
+
 	getAllRemindersQuery := get_all_reminders_query.NewQueryHandler(reminderRepository)
+	getAllRemindersQuery = get_all_reminders_query.NewQueryHandlerTracer(getAllRemindersQuery)
+
+	getReminderByIDQuery := get_reminder_by_id_quary.NewQueryHandler(reminderRepository)
+	getReminderByIDQuery = get_reminder_by_id_quary.NewQueryHandlerTracer(getReminderByIDQuery)
 
 	createReminderHTTPHandler := create_reminder_http_handler.NewHTTPHandler(createReminderCommand)
 	deleteReminderHTTPHandler := delete_reminder_http_handler.NewHTTPHandler(deleteReminderCommand)
-	getReminderByIDHTTPHandler := get_reminder_by_id_http_handler.NewHTTPHandler(getReminderByIDQuery)
 	getAllRemindersHTTPHandler := get_all_reminders_http_handler.NewHTTPHandler(getAllRemindersQuery)
+	getReminderByIDHTTPHandler := get_reminder_by_id_http_handler.NewHTTPHandler(getReminderByIDQuery)
 
 	router := httprouter.New()
 	router.Handler(http.MethodPost, create_reminder_http_handler.Endpoint, createReminderHTTPHandler)
