@@ -33,8 +33,7 @@ func TestNewReminderID(t *testing.T) {
 func TestNewReminderID_Error(t *testing.T) {
 	t.Parallel()
 
-	var v int64
-	v = 0
+	var v int64 = 0
 
 	reminderID, err := NewReminderID(v)
 	require.Error(t, err)
