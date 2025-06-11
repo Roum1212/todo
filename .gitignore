@@ -13,5 +13,6 @@
 !/docker-compose.yml
 !/Dockerfile
 !/migrations/**
+!/proto/**
 
 !*/

@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package reminder.v1;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/Roum1212/todo/internal/proto/reminder/v1;reminderv1";
+
+message Reminder {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+}
+
+message DeleteReminderRequest {
+  int64 id = 1;
+}
+
+message GetAllRemindersResponse {
+  repeated Reminder reminders = 1;
+}
+
+message GetReminderByIDResponse {
+  Reminder reminder = 1;
+}
+
+message GetReminderByIDRequest {
+  int64 id = 1;
+}
+
+message SaveReminderRequest {
+  string title = 1;
+  string description = 2;
+}
+
+service ReminderService {
+  rpc DeleteReminder(DeleteReminderRequest) returns (google.protobuf.Empty);
+  rpc GetAllReminders(google.protobuf.Empty) returns (GetAllRemindersResponse);
+  rpc GetReminderByID(GetReminderByIDRequest) returns (GetReminderByIDResponse);
+  rpc SaveReminder(SaveReminderRequest) returns (google.protobuf.Empty);
+}
