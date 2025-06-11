@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
-const tracerName = "github.com/Roum1212/todo/internal/app/command/create-reminder/handler.go"
+const tracerName = "github.com/Roum1212/todo/internal/app/command/create-reminder"
 
 //go:generate minimock -i CommandHandler -g -o ./mock -p create_reminder_command_mock -s "_minimock.go"
 type CommandHandler interface {
@@ -50,6 +51,7 @@ func (x tracerCommandHandler) HandleCommand(ctx context.Context, c Command) erro
 
 	if err := x.commandHandler.HandleCommand(ctx, c); err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 
 		return err
 	}
@@ -58,10 +60,8 @@ func (x tracerCommandHandler) HandleCommand(ctx context.Context, c Command) erro
 }
 
 func NewCommandHandlerWithTracing(commandHandler CommandHandler) CommandHandler {
-	tracer := otel.Tracer(tracerName)
-
 	return tracerCommandHandler{
 		commandHandler: commandHandler,
-		tracer:         tracer,
+		tracer:         otel.Tracer(tracerName),
 	}
 }

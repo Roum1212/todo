@@ -66,7 +66,7 @@ func main() {
 	// OpenTelemetry | Logger Provider.
 	openTelemetryLoggerProvider, err := opentelemetry.NewLoggerProvider(ctx, openTelemetryResource)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to initialize opentelemetry logger provider", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to create opentelemetry logger provider", slog.Any("error", err))
 
 		return
 	}
@@ -84,7 +84,7 @@ func main() {
 	// OpenTelemetry | Meter Provider.
 	openTelemetryMeterProvider, err := opentelemetry.NewMeterProvider(ctx, openTelemetryResource)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to initialize opentelemetry meter provider", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to create opentelemetry meter provider", slog.Any("error", err))
 
 		return
 	}
@@ -96,7 +96,7 @@ func main() {
 	// OpenTelemetry | Tracer Provider.
 	openTelemetryTracerProvider, err := opentelemetry.NewTracerProvider(ctx, openTelemetryResource)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to initialize opentelemetry tracer provider", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to create opentelemetry tracer provider", slog.Any("error", err))
 
 		return
 	}
@@ -125,7 +125,6 @@ func main() {
 	getAllRemindersQuery := get_all_reminders_query.NewQueryHandler(reminderRepository)
 
 	createReminderHTTPHandler := create_reminder_http_handler.NewHTTPHandler(createReminderCommand)
-	createReminderHTTPHandler = create_reminder_http_handler.NewHTTPHandlerWithTracer(createReminderHTTPHandler)
 	deleteReminderHTTPHandler := delete_reminder_http_handler.NewHTTPHandler(deleteReminderCommand)
 	getReminderByIDHTTPHandler := get_reminder_by_id_http_handler.NewHTTPHandler(getReminderByIDQuery)
 	getAllRemindersHTTPHandler := get_all_reminders_http_handler.NewHTTPHandler(getAllRemindersQuery)

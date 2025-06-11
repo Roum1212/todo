@@ -4,17 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/trace"
-
 	create_reminder_command "github.com/Roum1212/todo/internal/app/command/create-reminder"
 	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"
 	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
 const Endpoint = "/reminders"
-
-const tracerName = "github.com/Roum1212/todo/internal/api/http/handler/create-reminder/handler.go"
 
 type Handler struct {
 	commandHandler create_reminder_command.CommandHandler
@@ -64,25 +59,4 @@ func NewHTTPHandler(commandHandler create_reminder_command.CommandHandler) http.
 type Request struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
-}
-
-type tracerHandler struct {
-	handler http.Handler
-	tracer  trace.Tracer
-}
-
-func (x tracerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	_, span := x.tracer.Start(r.Context(), "Handler.ServeHTTP")
-	defer span.End()
-
-	x.handler.ServeHTTP(w, r)
-}
-
-func NewHTTPHandlerWithTracer(handler http.Handler) http.Handler {
-	tracer := otel.Tracer(tracerName)
-
-	return tracerHandler{
-		handler: handler,
-		tracer:  tracer,
-	}
 }

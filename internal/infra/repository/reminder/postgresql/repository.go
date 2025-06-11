@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
@@ -24,7 +25,7 @@ const (
 	fieldDescription = "description"
 )
 
-const tracerName = "github.com/Roum1212/todo/internal/postgresql/reminder/repository/repository.go"
+const tracerName = "github.com/Roum1212/todo/internal/postgresql/reminder/repository"
 
 type Repository struct {
 	client *pgxpool.Pool
@@ -192,6 +193,7 @@ func (x tracerRepository) GetReminderByID(
 	reminder, err := x.repository.GetReminderByID(ctx, reminderID)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 
 		return reminder_aggregate.Reminder{}, err
 	}
@@ -200,10 +202,8 @@ func (x tracerRepository) GetReminderByID(
 }
 
 func NewRepositoryWithTracing(repository reminder_aggregate.ReminderRepository) reminder_aggregate.ReminderRepository {
-	tracer := otel.Tracer(tracerName)
-
 	return tracerRepository{
 		repository: repository,
-		tracer:     tracer,
+		tracer:     otel.Tracer(tracerName),
 	}
 }
