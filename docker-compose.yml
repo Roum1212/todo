@@ -2,29 +2,85 @@ services:
   reminder:
     build: .
     ports:
-      - "9080:9080"
+      - "9443:9443"
     depends_on:
       - postgresql
     environment:
       POSTGRESQL_DSN: ${POSTGRESQL_DSN}
+      HTTP_SERVER_ADDRESS: ${HTTP_SERVER_ADDRESS}
+      OPENTELEMETRY_ADDRESS: ${OPENTELEMETRY_ADDRESS}
     volumes:
       - ./migrations/postgresql:/migrations
 
-  postgresql-migrations:
-    image: gomicro/goose
-    platform: linux/amd64
-    depends_on:
-      - postgresql
+  init-grafana-tempo:
+    image: &grafana-tempo-image grafana/tempo:latest
+    entrypoint:
+      - "chown"
+      - "10001:10001"
+      - "/var/tempo"
+    user: root
     volumes:
-      - ./migrations/postgresql:/migrations
+      - grafana_tempo_data:/var/tempo
+
+  grafana:
+    image: grafana/grafana:latest
+    depends_on:
+      - grafana-loki
     environment:
-      GOOSE_DRIVER: postgres
-      GOOSE_DBSTRING: ${POSTGRESQL_DSN}
-    command: [
-      "goose",
-      "-path", "/migrations",
-      "up"
-    ]
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: true
+      GF_FEATURE_TOGGLES_ENABLE: traceqlEditor
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+
+  grafana-loki:
+    image: grafana/loki:latest
+    command: -config.file=/etc/loki/local-config.yml
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+    volumes:
+      - ./loki-config.yml:/etc/loki/local-config.yml
+
+  grafana-promtail:
+    image: grafana/promtail:latest
+    command: -config.file=/etc/promtail/config.yml
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./promtail-config.yml:/etc/promtail/config.yml
+
+  grafana-tempo:
+    image: *grafana-tempo-image
+    command: [ "-config.file=/etc/tempo.yml" ]
+    depends_on:
+      - init-grafana-tempo
+    ports:
+      - "3200:3200"
+    expose:
+      - 4318
+    restart: unless-stopped
+    volumes:
+      - grafana_tempo_data:/var/tempo
+      - ./grafana-tempo.yml:/etc/tempo.yml
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: [ "--config", "/etc/otel-collector.yml" ]
+    depends_on:
+      - grafana-loki
+    ports:
+      - "4318:4318"
+    restart: unless-stopped
+    volumes:
+      - ./otel-collector.yml:/etc/otel-collector.yml
 
   postgresql:
     image: postgres:16-alpine
@@ -40,5 +96,35 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  postgresql-migrations:
+    image: gomicro/goose:3.7.0
+    command: [ "goose", "-dir", "/migrations", "postgres", "${POSTGRESQL_DSN}", "up" ]
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    volumes:
+      - "./migrations/postgresql:/migrations"
+
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus.yml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+      - --enable-feature=native-histograms
+    expose:
+      - 9090
+    restart: unless-stopped
+    volumes:
+      - "./prometheus.yml:/etc/prometheus.yml"
+
 volumes:
+  grafana_data:
+    driver: local
+  grafana_tempo_data:
+    driver: local
+  postgresql_data:
+    driver: local
+  redis_data:
+    driver: local
   postgres_data:

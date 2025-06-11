@@ -2,13 +2,16 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/julienschmidt/httprouter"
+	"github.com/rs/cors"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	create_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/create-reminder"
 	delete_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/delete-reminder"
@@ -19,10 +22,21 @@ import (
 	get_all_reminders_query "github.com/Roum1212/todo/internal/app/query/get-all-reminders"
 	get_reminder_by_id_quary "github.com/Roum1212/todo/internal/app/query/get-reminder-by-id"
 	postgresql_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/postgresql"
+	opentelemetry "github.com/Roum1212/todo/internal/pkg/opentelementry"
 )
 
 type Config struct {
-	PostgreSQLDSN string `env:"POSTGRESQL_DSN"`
+	HTTPServer    ServerConfig `envPrefix:"HTTP_SERVER_"`
+	OpenTelemetry ServerConfig `envPrefix:"OPENTELEMETRY_"`
+	PostgreSQL    DBConfig     `envPrefix:"POSTGRESQL_"`
+}
+
+type DBConfig struct {
+	DSN string `env:"DSN"`
+}
+
+type ServerConfig struct {
+	Address string `env:"ADDRESS"`
 }
 
 const (
@@ -36,17 +50,76 @@ func main() {
 
 	var cfg Config
 	if err := env.Parse(&cfg); err != nil {
-		log.Fatal("failed to parse env: %w", err)
+		slog.ErrorContext(ctx, "failed to parse config", slog.Any("error", err))
+
+		return
 	}
 
-	pool, err := pgxpool.New(ctx, cfg.PostgreSQLDSN)
+	// OpenTelemetry | Resource.
+	openTelemetryResource, err := opentelemetry.NewResource(ctx)
 	if err != nil {
-		log.Fatal("failed to create pgx pool: %w", err)
+		slog.ErrorContext(ctx, "failed to create opentelemetry resource", slog.Any("error", err))
+
+		return
+	}
+
+	// OpenTelemetry | Logger Provider.
+	openTelemetryLoggerProvider, err := opentelemetry.NewLoggerProvider(ctx, openTelemetryResource)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to create opentelemetry logger provider", slog.Any("error", err))
+
+		return
+	}
+
+	defer func() {
+		_ = openTelemetryLoggerProvider.Shutdown(ctx) //nolint:errcheck // OK.
+	}()
+
+	slog.SetDefault(otelslog.NewLogger(
+		"reminder",
+		otelslog.WithLoggerProvider(openTelemetryLoggerProvider),
+		otelslog.WithSource(true),
+	))
+
+	// OpenTelemetry | Meter Provider.
+	openTelemetryMeterProvider, err := opentelemetry.NewMeterProvider(ctx, openTelemetryResource)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to create opentelemetry meter provider", slog.Any("error", err))
+
+		return
+	}
+
+	defer func() {
+		_ = openTelemetryMeterProvider.Shutdown(ctx) //nolint:errcheck // OK.
+	}()
+
+	// OpenTelemetry | Tracer Provider.
+	openTelemetryTracerProvider, err := opentelemetry.NewTracerProvider(ctx, openTelemetryResource)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to create opentelemetry tracer provider", slog.Any("error", err))
+
+		return
+	}
+
+	defer func() {
+		_ = openTelemetryTracerProvider.Shutdown(ctx) //nolint:errcheck // OK.
+	}()
+
+	// OpenTelemetry | Text Map Propagator.
+	opentelemetry.SetTextMapPropagator()
+
+	pool, err := pgxpool.New(ctx, cfg.PostgreSQL.DSN)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to create postgresql pool", slog.Any("error", err))
+
+		return
 	}
 
 	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
+	reminderRepository = postgresql_reminder_repository.NewRepositoryWithTracing(reminderRepository)
 
 	createReminderCommand := create_reminder_command.NewCommandHandler(reminderRepository)
+	createReminderCommand = create_reminder_command.NewCommandHandlerWithTracing(createReminderCommand)
 	deleteReminderCommand := delete_reminder_command.NewCommandHandler(reminderRepository)
 	getReminderByIDQuery := get_reminder_by_id_quary.NewQueryHandler(reminderRepository)
 	getAllRemindersQuery := get_all_reminders_query.NewQueryHandler(reminderRepository)
@@ -63,13 +136,15 @@ func main() {
 	router.Handler(http.MethodGet, get_all_reminders_http_handler.Endpoint, getAllRemindersHTTPHandler)
 
 	srv := &http.Server{
-		Addr:         ":9080",
-		Handler:      router,
+		Addr:         cfg.HTTPServer.Address,
+		Handler:      otelhttp.NewHandler(cors.New(cors.Options{}).Handler(router), "HTTP Server"),
 		WriteTimeout: WriteTimeout,
 		ReadTimeout:  ReadTimeout,
 		IdleTimeout:  IdleTimeout,
 	}
 	if err = srv.ListenAndServe(); err != nil {
-		log.Fatal(err)
+		slog.Error("failed to listen and serve http server", slog.Any("error", err))
+
+		return
 	}
 }
