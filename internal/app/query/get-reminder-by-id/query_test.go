@@ -14,7 +14,7 @@ func TestNewQuery(t *testing.T) {
 	reminderID := reminder_id_model.GenerateReminderID()
 
 	query := NewQuery(reminderID)
-	require.Equal(t, reminderID, query.id)
+	require.Equal(t, reminderID, query.GetID())
 }
 
 func TestQuery_Validate(t *testing.T) {

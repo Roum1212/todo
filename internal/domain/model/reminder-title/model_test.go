@@ -17,12 +17,18 @@ func TestNewReminderTitle(t *testing.T) {
 	require.Equal(t, s, string(reminderTitle))
 }
 
+func TestNewReminderTitle_Error(t *testing.T) {
+	t.Parallel()
+
+	reminderTitle, err := NewReminderTitle("")
+	require.Error(t, err)
+	require.Empty(t, reminderTitle)
+}
+
 func TestReminderTitle_Validate(t *testing.T) {
 	t.Parallel()
 
-	s := rand.Text()
-
-	reminderTitle, err := NewReminderTitle(s)
+	reminderTitle, err := NewReminderTitle(rand.Text())
 	require.NoError(t, err)
 	require.NoError(t, reminderTitle.Validate())
 }

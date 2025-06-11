@@ -46,3 +46,45 @@ func TestCommandHandler_HandleCommand_Error(t *testing.T) {
 	handler := NewCommandHandler(reminderRepositoryMock)
 	require.ErrorIs(t, handler.HandleCommand(t.Context(), command), assert.AnError)
 }
+
+func TestTracerCommandHandler_HandleCommand(t *testing.T) {
+	t.Parallel()
+
+	mc := minimock.NewController(t)
+
+	reminderID := reminder_id_model.GenerateReminderID()
+
+	command := NewCommand(reminderID)
+
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
+		DeleteReminderMock.
+		Expect(minimock.AnyContext, reminderID).
+		Return(nil)
+
+	handler := NewCommandHandler(reminderRepositoryMock)
+	require.NoError(t, handler.HandleCommand(t.Context(), command))
+
+	handlerTracer := NewCommandHandlerTracer(handler)
+	require.NoError(t, handlerTracer.HandleCommand(t.Context(), command))
+}
+
+func TestTracerCommandHandler_HandleCommand_Error(t *testing.T) {
+	t.Parallel()
+
+	mc := minimock.NewController(t)
+
+	reminderID := reminder_id_model.GenerateReminderID()
+
+	command := NewCommand(reminderID)
+
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
+		DeleteReminderMock.
+		Expect(minimock.AnyContext, reminderID).
+		Return(assert.AnError)
+
+	handler := NewCommandHandler(reminderRepositoryMock)
+	require.Error(t, handler.HandleCommand(t.Context(), command))
+
+	handlerTracer := NewCommandHandlerTracer(handler)
+	require.Error(t, handlerTracer.HandleCommand(t.Context(), command))
+}
