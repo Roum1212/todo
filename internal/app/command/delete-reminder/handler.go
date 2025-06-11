@@ -11,7 +11,7 @@ import (
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 )
 
-const tracerName = "github.com/Roum1212/todo/internal/app/command/delete_reminder"
+const tracerName = "github.com/Roum1212/todo/internal/app/command/delete-reminder"
 
 //go:generate minimock -i CommandHandler -g -o ./mock -p delete_reminder_command_mock -s "_minimock.go"
 type CommandHandler interface {
