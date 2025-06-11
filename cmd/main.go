@@ -58,7 +58,7 @@ func main() {
 	// OpenTelemetry | Resource.
 	openTelemetryResource, err := opentelemetry.NewResource(ctx)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to initialize OpenTelemetry resource", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to create opentelemetry resource", slog.Any("error", err))
 
 		return
 	}
@@ -66,7 +66,7 @@ func main() {
 	// OpenTelemetry | Logger Provider.
 	openTelemetryLoggerProvider, err := opentelemetry.NewLoggerProvider(ctx, openTelemetryResource)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to initialize OpenTelemetry logger provider", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to initialize opentelemetry logger provider", slog.Any("error", err))
 
 		return
 	}
@@ -84,7 +84,7 @@ func main() {
 	// OpenTelemetry | Meter Provider.
 	openTelemetryMeterProvider, err := opentelemetry.NewMeterProvider(ctx, openTelemetryResource)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to initialize OpenTelemetry meter", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to initialize opentelemetry meter provider", slog.Any("error", err))
 
 		return
 	}
@@ -96,7 +96,7 @@ func main() {
 	// OpenTelemetry | Tracer Provider.
 	openTelemetryTracerProvider, err := opentelemetry.NewTracerProvider(ctx, openTelemetryResource)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to initialize OpenTelemetry tracer", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to initialize opentelemetry tracer provider", slog.Any("error", err))
 
 		return
 	}
@@ -110,19 +110,22 @@ func main() {
 
 	pool, err := pgxpool.New(ctx, cfg.PostgreSQL.DSN)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to initialize PostgreSQL connection", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to create postgresql pool", slog.Any("error", err))
 
 		return
 	}
 
 	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
+	reminderRepository = postgresql_reminder_repository.NewRepositoryWithTracing(reminderRepository)
 
 	createReminderCommand := create_reminder_command.NewCommandHandler(reminderRepository)
+	createReminderCommand = create_reminder_command.NewCommandHandlerWithTracing(createReminderCommand)
 	deleteReminderCommand := delete_reminder_command.NewCommandHandler(reminderRepository)
 	getReminderByIDQuery := get_reminder_by_id_quary.NewQueryHandler(reminderRepository)
 	getAllRemindersQuery := get_all_reminders_query.NewQueryHandler(reminderRepository)
 
 	createReminderHTTPHandler := create_reminder_http_handler.NewHTTPHandler(createReminderCommand)
+	createReminderHTTPHandler = create_reminder_http_handler.NewHTTPHandlerWithTracer(createReminderHTTPHandler)
 	deleteReminderHTTPHandler := delete_reminder_http_handler.NewHTTPHandler(deleteReminderCommand)
 	getReminderByIDHTTPHandler := get_reminder_by_id_http_handler.NewHTTPHandler(getReminderByIDQuery)
 	getAllRemindersHTTPHandler := get_all_reminders_http_handler.NewHTTPHandler(getAllRemindersQuery)
@@ -141,7 +144,7 @@ func main() {
 		IdleTimeout:  IdleTimeout,
 	}
 	if err = srv.ListenAndServe(); err != nil {
-		slog.Error("failed to start HTTP server", slog.Any("error", err))
+		slog.Error("failed to listen and serve http server", slog.Any("error", err))
 
 		return
 	}
