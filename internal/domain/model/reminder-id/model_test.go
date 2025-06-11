@@ -2,6 +2,7 @@ package reminder_id_model
 
 import (
 	"crypto/rand"
+	"strconv"
 	"testing"
 	"time"
 
@@ -33,9 +34,7 @@ func TestNewReminderID(t *testing.T) {
 func TestNewReminderID_Error(t *testing.T) {
 	t.Parallel()
 
-	var v int64 = 0
-
-	reminderID, err := NewReminderID(v)
+	reminderID, err := NewReminderID(0)
 	require.Error(t, err)
 	require.Empty(t, reminderID)
 }
@@ -43,9 +42,7 @@ func TestNewReminderID_Error(t *testing.T) {
 func TestReminderID_Validate(t *testing.T) {
 	t.Parallel()
 
-	v := time.Now().Unix()
-
-	reminderID, err := NewReminderID(v)
+	reminderID, err := NewReminderID(time.Now().Unix())
 	require.NoError(t, err)
 	require.NoError(t, reminderID.Validate())
 }
@@ -60,19 +57,17 @@ func TestReminderID_Validate_Error(t *testing.T) {
 func TestReminderIDFromString(t *testing.T) {
 	t.Parallel()
 
-	s := "123"
+	n := int64(123)
 
-	reminderID, err := NewReminderIDFromString(s)
+	reminderID, err := NewReminderIDFromString(strconv.FormatInt(n, 10))
 	require.NoError(t, err)
-	require.Equal(t, int64(123), int64(reminderID))
+	require.Equal(t, n, int64(reminderID))
 }
 
 func TestReminderIDFromString_Error(t *testing.T) {
 	t.Parallel()
 
-	s := rand.Text()
-
-	reminderID, err := NewReminderIDFromString(s)
+	reminderID, err := NewReminderIDFromString(rand.Text())
 	require.Error(t, err)
 	require.Empty(t, reminderID)
 }

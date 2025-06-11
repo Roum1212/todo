@@ -20,9 +20,7 @@ func TestNewReminderDescription(t *testing.T) {
 func TestNewReminderDescription_Error(t *testing.T) {
 	t.Parallel()
 
-	s := ""
-
-	reminderDescription, err := NewReminderDescription(s)
+	reminderDescription, err := NewReminderDescription("")
 	require.Error(t, err)
 	require.Empty(t, reminderDescription)
 }
@@ -30,9 +28,7 @@ func TestNewReminderDescription_Error(t *testing.T) {
 func TestReminderDescription_Validate(t *testing.T) {
 	t.Parallel()
 
-	s := rand.Text()
-
-	reminderDescription, err := NewReminderDescription(s)
+	reminderDescription, err := NewReminderDescription(rand.Text())
 	require.NoError(t, err)
 	require.NoError(t, reminderDescription.Validate())
 }
