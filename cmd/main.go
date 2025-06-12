@@ -51,9 +51,7 @@ const (
 	IdleTimeout  = time.Second * 60
 )
 
-const goroutines = 2
-
-func main() {
+func main() { //nolint:gocognit,cyclop // OK.
 	ctx := context.Background()
 
 	var cfg Config
