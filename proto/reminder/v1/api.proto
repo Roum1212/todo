@@ -10,7 +10,7 @@ service ReminderService {
   rpc DeleteReminder(DeleteReminderRequest) returns (google.protobuf.Empty);
   rpc GetAllReminders(google.protobuf.Empty) returns (GetAllRemindersResponse);
   rpc GetReminderByID(GetReminderByIDRequest) returns (GetReminderByIDResponse);
-  rpc SaveReminder(SaveReminderRequest) returns (SaveReminderResponse);
+  rpc CreateReminder(CreateReminderRequest) returns (CreateReminderResponse);
 }
 
 message Reminder {
@@ -18,6 +18,16 @@ message Reminder {
   string title = 2;
   string description = 3;
 }
+
+message CreateReminderRequest {
+  string title = 1;
+  string description = 2;
+}
+
+message CreateReminderResponse {
+  int64 id = 1;
+}
+
 
 message DeleteReminderRequest {
   int64 id = 1;
@@ -33,13 +43,4 @@ message GetReminderByIDRequest {
 
 message GetReminderByIDResponse {
   Reminder reminder = 1;
-}
-
-message SaveReminderRequest {
-  string title = 1;
-  string description = 2;
-}
-
-message SaveReminderResponse {
-  int64 id = 1;
 }
