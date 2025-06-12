@@ -25,8 +25,6 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reminderID := reminder_id_model.GenerateReminderID()
-
 	reminderTitle, err := reminder_title_model.NewReminderTitle(request.Title)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -40,6 +38,8 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	reminderID := reminder_id_model.GenerateReminderID()
 
 	if err = x.commandHandler.HandleCommand(
 		r.Context(),

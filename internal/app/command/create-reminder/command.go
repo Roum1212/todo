@@ -14,12 +14,12 @@ type Command struct {
 	description reminder_description_model.ReminderDescription
 }
 
-func (x Command) GetID() reminder_id_model.ReminderID {
-	return x.id
-}
-
 func (x Command) GetDescription() reminder_description_model.ReminderDescription {
 	return x.description
+}
+
+func (x Command) GetID() reminder_id_model.ReminderID {
+	return x.id
 }
 
 func (x Command) GetTitle() reminder_title_model.ReminderTitle {

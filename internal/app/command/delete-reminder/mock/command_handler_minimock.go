@@ -12,7 +12,7 @@ import (
 	"github.com/gojuno/minimock/v3"
 )
 
-// CommandHandlerMock implements mm_delete_reminder_command.CommandHandler
+// CommandHandlerMock implements mm_delete_reminder_command.commandHandler
 type CommandHandlerMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
@@ -25,7 +25,7 @@ type CommandHandlerMock struct {
 	HandleCommandMock          mCommandHandlerMockHandleCommand
 }
 
-// NewCommandHandlerMock returns a mock for mm_delete_reminder_command.CommandHandler
+// NewCommandHandlerMock returns a mock for mm_delete_reminder_command.commandHandler
 func NewCommandHandlerMock(t minimock.Tester) *CommandHandlerMock {
 	m := &CommandHandlerMock{t: t}
 
@@ -54,7 +54,7 @@ type mCommandHandlerMockHandleCommand struct {
 	expectedInvocationsOrigin string
 }
 
-// CommandHandlerMockHandleCommandExpectation specifies expectation struct of the CommandHandler.HandleCommand
+// CommandHandlerMockHandleCommandExpectation specifies expectation struct of the commandHandler.HandleCommand
 type CommandHandlerMockHandleCommandExpectation struct {
 	mock               *CommandHandlerMock
 	params             *CommandHandlerMockHandleCommandParams
@@ -65,24 +65,24 @@ type CommandHandlerMockHandleCommandExpectation struct {
 	Counter            uint64
 }
 
-// CommandHandlerMockHandleCommandParams contains parameters of the CommandHandler.HandleCommand
+// CommandHandlerMockHandleCommandParams contains parameters of the commandHandler.HandleCommand
 type CommandHandlerMockHandleCommandParams struct {
 	ctx context.Context
 	c   mm_delete_reminder_command.Command
 }
 
-// CommandHandlerMockHandleCommandParamPtrs contains pointers to parameters of the CommandHandler.HandleCommand
+// CommandHandlerMockHandleCommandParamPtrs contains pointers to parameters of the commandHandler.HandleCommand
 type CommandHandlerMockHandleCommandParamPtrs struct {
 	ctx *context.Context
 	c   *mm_delete_reminder_command.Command
 }
 
-// CommandHandlerMockHandleCommandResults contains results of the CommandHandler.HandleCommand
+// CommandHandlerMockHandleCommandResults contains results of the commandHandler.HandleCommand
 type CommandHandlerMockHandleCommandResults struct {
 	err error
 }
 
-// CommandHandlerMockHandleCommandOrigins contains origins of expectations of the CommandHandler.HandleCommand
+// CommandHandlerMockHandleCommandOrigins contains origins of expectations of the commandHandler.HandleCommand
 type CommandHandlerMockHandleCommandExpectationOrigins struct {
 	origin    string
 	originCtx string
@@ -99,7 +99,7 @@ func (mmHandleCommand *mCommandHandlerMockHandleCommand) Optional() *mCommandHan
 	return mmHandleCommand
 }
 
-// Expect sets up expected params for CommandHandler.HandleCommand
+// Expect sets up expected params for commandHandler.HandleCommand
 func (mmHandleCommand *mCommandHandlerMockHandleCommand) Expect(ctx context.Context, c mm_delete_reminder_command.Command) *mCommandHandlerMockHandleCommand {
 	if mmHandleCommand.mock.funcHandleCommand != nil {
 		mmHandleCommand.mock.t.Fatalf("CommandHandlerMock.HandleCommand mock is already set by Set")
@@ -124,7 +124,7 @@ func (mmHandleCommand *mCommandHandlerMockHandleCommand) Expect(ctx context.Cont
 	return mmHandleCommand
 }
 
-// ExpectCtxParam1 sets up expected param ctx for CommandHandler.HandleCommand
+// ExpectCtxParam1 sets up expected param ctx for commandHandler.HandleCommand
 func (mmHandleCommand *mCommandHandlerMockHandleCommand) ExpectCtxParam1(ctx context.Context) *mCommandHandlerMockHandleCommand {
 	if mmHandleCommand.mock.funcHandleCommand != nil {
 		mmHandleCommand.mock.t.Fatalf("CommandHandlerMock.HandleCommand mock is already set by Set")
@@ -147,7 +147,7 @@ func (mmHandleCommand *mCommandHandlerMockHandleCommand) ExpectCtxParam1(ctx con
 	return mmHandleCommand
 }
 
-// ExpectCParam2 sets up expected param c for CommandHandler.HandleCommand
+// ExpectCParam2 sets up expected param c for commandHandler.HandleCommand
 func (mmHandleCommand *mCommandHandlerMockHandleCommand) ExpectCParam2(c mm_delete_reminder_command.Command) *mCommandHandlerMockHandleCommand {
 	if mmHandleCommand.mock.funcHandleCommand != nil {
 		mmHandleCommand.mock.t.Fatalf("CommandHandlerMock.HandleCommand mock is already set by Set")
@@ -170,7 +170,7 @@ func (mmHandleCommand *mCommandHandlerMockHandleCommand) ExpectCParam2(c mm_dele
 	return mmHandleCommand
 }
 
-// Inspect accepts an inspector function that has same arguments as the CommandHandler.HandleCommand
+// Inspect accepts an inspector function that has same arguments as the commandHandler.HandleCommand
 func (mmHandleCommand *mCommandHandlerMockHandleCommand) Inspect(f func(ctx context.Context, c mm_delete_reminder_command.Command)) *mCommandHandlerMockHandleCommand {
 	if mmHandleCommand.mock.inspectFuncHandleCommand != nil {
 		mmHandleCommand.mock.t.Fatalf("Inspect function is already set for CommandHandlerMock.HandleCommand")
@@ -181,7 +181,7 @@ func (mmHandleCommand *mCommandHandlerMockHandleCommand) Inspect(f func(ctx cont
 	return mmHandleCommand
 }
 
-// Return sets up results that will be returned by CommandHandler.HandleCommand
+// Return sets up results that will be returned by commandHandler.HandleCommand
 func (mmHandleCommand *mCommandHandlerMockHandleCommand) Return(err error) *CommandHandlerMock {
 	if mmHandleCommand.mock.funcHandleCommand != nil {
 		mmHandleCommand.mock.t.Fatalf("CommandHandlerMock.HandleCommand mock is already set by Set")
@@ -195,14 +195,14 @@ func (mmHandleCommand *mCommandHandlerMockHandleCommand) Return(err error) *Comm
 	return mmHandleCommand.mock
 }
 
-// Set uses given function f to mock the CommandHandler.HandleCommand method
+// Set uses given function f to mock the commandHandler.HandleCommand method
 func (mmHandleCommand *mCommandHandlerMockHandleCommand) Set(f func(ctx context.Context, c mm_delete_reminder_command.Command) (err error)) *CommandHandlerMock {
 	if mmHandleCommand.defaultExpectation != nil {
-		mmHandleCommand.mock.t.Fatalf("Default expectation is already set for the CommandHandler.HandleCommand method")
+		mmHandleCommand.mock.t.Fatalf("Default expectation is already set for the commandHandler.HandleCommand method")
 	}
 
 	if len(mmHandleCommand.expectations) > 0 {
-		mmHandleCommand.mock.t.Fatalf("Some expectations are already set for the CommandHandler.HandleCommand method")
+		mmHandleCommand.mock.t.Fatalf("Some expectations are already set for the commandHandler.HandleCommand method")
 	}
 
 	mmHandleCommand.mock.funcHandleCommand = f
@@ -210,7 +210,7 @@ func (mmHandleCommand *mCommandHandlerMockHandleCommand) Set(f func(ctx context.
 	return mmHandleCommand.mock
 }
 
-// When sets expectation for the CommandHandler.HandleCommand which will trigger the result defined by the following
+// When sets expectation for the commandHandler.HandleCommand which will trigger the result defined by the following
 // Then helper
 func (mmHandleCommand *mCommandHandlerMockHandleCommand) When(ctx context.Context, c mm_delete_reminder_command.Command) *CommandHandlerMockHandleCommandExpectation {
 	if mmHandleCommand.mock.funcHandleCommand != nil {
@@ -226,13 +226,13 @@ func (mmHandleCommand *mCommandHandlerMockHandleCommand) When(ctx context.Contex
 	return expectation
 }
 
-// Then sets up CommandHandler.HandleCommand return parameters for the expectation previously defined by the When method
+// Then sets up commandHandler.HandleCommand return parameters for the expectation previously defined by the When method
 func (e *CommandHandlerMockHandleCommandExpectation) Then(err error) *CommandHandlerMock {
 	e.results = &CommandHandlerMockHandleCommandResults{err}
 	return e.mock
 }
 
-// Times sets number of times CommandHandler.HandleCommand should be invoked
+// Times sets number of times commandHandler.HandleCommand should be invoked
 func (mmHandleCommand *mCommandHandlerMockHandleCommand) Times(n uint64) *mCommandHandlerMockHandleCommand {
 	if n == 0 {
 		mmHandleCommand.mock.t.Fatalf("Times of CommandHandlerMock.HandleCommand mock can not be zero")
@@ -253,7 +253,7 @@ func (mmHandleCommand *mCommandHandlerMockHandleCommand) invocationsDone() bool 
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// HandleCommand implements mm_delete_reminder_command.CommandHandler
+// HandleCommand implements mm_delete_reminder_command.commandHandler
 func (mmHandleCommand *CommandHandlerMock) HandleCommand(ctx context.Context, c mm_delete_reminder_command.Command) (err error) {
 	mm_atomic.AddUint64(&mmHandleCommand.beforeHandleCommandCounter, 1)
 	defer mm_atomic.AddUint64(&mmHandleCommand.afterHandleCommandCounter, 1)

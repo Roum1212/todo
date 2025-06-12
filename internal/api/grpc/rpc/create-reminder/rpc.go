@@ -1,4 +1,4 @@
-package create_reminder_grpc_server
+package create_reminder_rpc
 
 import (
 	"context"
@@ -13,17 +13,14 @@ import (
 	reminder_v1 "github.com/Roum1212/todo/pkg/gen/reminder/v1"
 )
 
-type Server struct {
-	reminder_v1.UnimplementedReminderServiceServer
+type CreateReminderRPC struct {
 	commandHandler create_reminder_command.CommandHandler
 }
 
-func (x *Server) CreateReminder(
+func (x CreateReminderRPC) CreateReminder(
 	ctx context.Context,
 	r *reminder_v1.CreateReminderRequest,
 ) (*reminder_v1.CreateReminderResponse, error) {
-	reminderID := reminder_id_model.GenerateReminderID()
-
 	reminderTitle, err := reminder_title_model.NewReminderTitle(r.GetTitle())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid reminderTitle: %v", err)
@@ -33,6 +30,8 @@ func (x *Server) CreateReminder(
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid reminderDescription: %v", err)
 	}
+
+	reminderID := reminder_id_model.GenerateReminderID()
 
 	if err = x.commandHandler.HandleCommand(
 		ctx,
@@ -46,8 +45,8 @@ func (x *Server) CreateReminder(
 	}, nil
 }
 
-func NewServer(commandHandler create_reminder_command.CommandHandler) Server {
-	return Server{
+func NewCreateReminderRPC(commandHandler create_reminder_command.CommandHandler) CreateReminderRPC {
+	return CreateReminderRPC{
 		commandHandler: commandHandler,
 	}
 }

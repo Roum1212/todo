@@ -16,7 +16,7 @@ var ErrReminderNotFound = errors.New("reminder not found")
 
 const tracerName = "github.com/Roum1212/todo/internal/app/command/delete-reminder"
 
-//go:generate minimock -i CommandHandler -g -o ./mock -p delete_reminder_command_mock -s "_minimock.go"
+//go:generate minimock -i commandHandler -g -o ./mock -p delete_reminder_command_mock -s "_minimock.go"
 type CommandHandler interface {
 	HandleCommand(ctx context.Context, c Command) error
 }
@@ -50,7 +50,7 @@ type tracerCommandHandler struct {
 }
 
 func (x tracerCommandHandler) HandleCommand(ctx context.Context, c Command) error {
-	_, span := x.tracer.Start(ctx, "CommandHandler.HandleCommand")
+	_, span := x.tracer.Start(ctx, "commandHandler.HandleCommand")
 	defer span.End()
 
 	if err := x.commandHandler.HandleCommand(ctx, c); err != nil {

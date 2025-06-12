@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/caarlos0/env/v11"
@@ -14,9 +13,10 @@ import (
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
-	create_reminder_grpc_server "github.com/Roum1212/todo/internal/api/grpc/server/create-reminder"
+	server_grpc "github.com/Roum1212/todo/internal/api/grpc/server"
 	create_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/create-reminder"
 	delete_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/delete-reminder"
 	get_all_reminders_http_handler "github.com/Roum1212/todo/internal/api/http/handler/get-all-reminders"
@@ -24,7 +24,7 @@ import (
 	create_reminder_command "github.com/Roum1212/todo/internal/app/command/create-reminder"
 	delete_reminder_command "github.com/Roum1212/todo/internal/app/command/delete-reminder"
 	get_all_reminders_query "github.com/Roum1212/todo/internal/app/query/get-all-reminders"
-	get_reminder_by_id_quary "github.com/Roum1212/todo/internal/app/query/get-reminder-by-id"
+	get_reminder_by_id_query "github.com/Roum1212/todo/internal/app/query/get-reminder-by-id"
 	postgresql_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/postgresql"
 	opentelemetry "github.com/Roum1212/todo/internal/pkg/opentelementry"
 	reminder_v1 "github.com/Roum1212/todo/pkg/gen/reminder/v1"
@@ -53,7 +53,7 @@ const (
 
 const goroutines = 2
 
-func main() { //nolint:gocognit // OK.
+func main() {
 	ctx := context.Background()
 
 	var cfg Config
@@ -135,8 +135,8 @@ func main() { //nolint:gocognit // OK.
 	getAllRemindersQuery := get_all_reminders_query.NewQueryHandler(reminderRepository)
 	getAllRemindersQuery = get_all_reminders_query.NewQueryHandlerTracer(getAllRemindersQuery)
 
-	getReminderByIDQuery := get_reminder_by_id_quary.NewQueryHandler(reminderRepository)
-	getReminderByIDQuery = get_reminder_by_id_quary.NewQueryHandlerTracer(getReminderByIDQuery)
+	getReminderByIDQuery := get_reminder_by_id_query.NewQueryHandler(reminderRepository)
+	getReminderByIDQuery = get_reminder_by_id_query.NewQueryHandlerTracer(getReminderByIDQuery)
 
 	createReminderHTTPHandler := create_reminder_http_handler.NewHTTPHandler(createReminderCommand)
 	deleteReminderHTTPHandler := delete_reminder_http_handler.NewHTTPHandler(deleteReminderCommand)
@@ -157,44 +157,46 @@ func main() { //nolint:gocognit // OK.
 		IdleTimeout:  IdleTimeout,
 	}
 
-	listener, err := net.Listen("tcp", cfg.GRPCServer.Address)
-	if err != nil {
-		slog.ErrorContext(ctx, "failed to listen gRPC listener", slog.Any("error", err))
+	g, ctx := errgroup.WithContext(ctx)
 
-		return
-	}
-
-	var wg sync.WaitGroup
-
-	wg.Add(goroutines)
-
-	go func() {
-		defer wg.Done()
-
+	g.Go(func() error {
 		err = srv.ListenAndServe()
 		if err != nil {
 			slog.Error("failed to listen and serve http server", slog.Any("error", err))
 
-			return
+			return err
 		}
-	}()
 
-	go func() {
-		defer wg.Done()
+		return nil
+	})
+
+	g.Go(func() error {
+		listen, ListenErr := net.Listen("tcp", cfg.GRPCServer.Address)
+		if ListenErr != nil {
+			slog.ErrorContext(ctx, "failed to listen grpc server", slog.Any("error", ListenErr))
+
+			return ListenErr
+		}
 
 		grpcServer := grpc.NewServer()
 
-		createReminderGRPCServer := create_reminder_grpc_server.NewServer(createReminderCommand)
+		reminder_v1.RegisterReminderServiceServer(
+			grpcServer,
+			server_grpc.NewCreateReminderService(createReminderCommand),
+		)
 
-		reminder_v1.RegisterReminderServiceServer(grpcServer, &createReminderGRPCServer)
+		if ServerErr := grpcServer.Serve(listen); ServerErr != nil {
+			slog.ErrorContext(ctx, "failed to serve grpc server", slog.Any("error", ServerErr))
 
-		err = grpcServer.Serve(listener)
-		if err != nil {
-			slog.ErrorContext(ctx, "failed to serve gRPC server", slog.Any("error", err))
-
-			return
+			return ServerErr
 		}
-	}()
 
-	wg.Wait()
+		return nil
+	})
+
+	if err = g.Wait(); err != nil {
+		slog.ErrorContext(ctx, "failed to shutdown grpc server", slog.Any("error", err))
+
+		return
+	}
 }

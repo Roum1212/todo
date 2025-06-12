@@ -14,13 +14,13 @@ import (
 func TestNewCommand(t *testing.T) {
 	t.Parallel()
 
-	id := reminder_id_model.GenerateReminderID()
-
 	title, err := reminder_title_model.NewReminderTitle(rand.Text())
 	require.NoError(t, err)
 
 	description, err := reminder_description_model.NewReminderDescription(rand.Text())
 	require.NoError(t, err)
+
+	id := reminder_id_model.GenerateReminderID()
 
 	command := NewCommand(id, title, description)
 	require.Equal(t, id, command.GetID())
@@ -31,44 +31,18 @@ func TestNewCommand(t *testing.T) {
 func TestCommand_Validate(t *testing.T) {
 	t.Parallel()
 
-	id := reminder_id_model.GenerateReminderID()
-
 	title, err := reminder_title_model.NewReminderTitle(rand.Text())
 	require.NoError(t, err)
 
 	description, err := reminder_description_model.NewReminderDescription(rand.Text())
 	require.NoError(t, err)
 
-	command := NewCommand(id, title, description)
+	command := NewCommand(reminder_id_model.GenerateReminderID(), title, description)
 	require.NoError(t, command.Validate())
 }
 
 func TestCommand_Validate_Error(t *testing.T) {
 	t.Parallel()
-
-	t.Run("invalid title", func(t *testing.T) {
-		t.Parallel()
-
-		id := reminder_id_model.GenerateReminderID()
-
-		description, err := reminder_description_model.NewReminderDescription(rand.Text())
-		require.NoError(t, err)
-
-		command := NewCommand(id, "", description)
-		require.Error(t, command.Validate())
-	})
-
-	t.Run("invalid description", func(t *testing.T) {
-		t.Parallel()
-
-		id := reminder_id_model.GenerateReminderID()
-
-		title, err := reminder_title_model.NewReminderTitle(rand.Text())
-		require.NoError(t, err)
-
-		command := NewCommand(id, title, "")
-		require.Error(t, command.Validate())
-	})
 
 	t.Run("invalid id", func(t *testing.T) {
 		t.Parallel()
@@ -80,6 +54,26 @@ func TestCommand_Validate_Error(t *testing.T) {
 		require.NoError(t, err)
 
 		command := NewCommand(0, title, description)
+		require.Error(t, command.Validate())
+	})
+
+	t.Run("invalid title", func(t *testing.T) {
+		t.Parallel()
+
+		description, err := reminder_description_model.NewReminderDescription(rand.Text())
+		require.NoError(t, err)
+
+		command := NewCommand(reminder_id_model.GenerateReminderID(), "", description)
+		require.Error(t, command.Validate())
+	})
+
+	t.Run("invalid description", func(t *testing.T) {
+		t.Parallel()
+
+		title, err := reminder_title_model.NewReminderTitle(rand.Text())
+		require.NoError(t, err)
+
+		command := NewCommand(reminder_id_model.GenerateReminderID(), title, "")
 		require.Error(t, command.Validate())
 	})
 }

@@ -1,7 +1,6 @@
 package create_reminder_command
 
 import (
-	"context"
 	"crypto/rand"
 	"testing"
 
@@ -21,26 +20,21 @@ func TestCommandHandler_HandleCommand(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	id := reminder_id_model.GenerateReminderID()
-
 	title, err := reminder_title_model.NewReminderTitle(rand.Text())
 	require.NoError(t, err)
 
 	description, err := reminder_description_model.NewReminderDescription(rand.Text())
 	require.NoError(t, err)
 
-	command := NewCommand(id, title, description)
+	id := reminder_id_model.GenerateReminderID()
 
 	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		SaveReminderMock.
-		Inspect(func(ctx context.Context, reminder reminder_aggregate.Reminder) {
-			require.Equal(t, title, reminder.GetTitle())
-			require.Equal(t, description, reminder.GetDescription())
-		}).
+		Expect(minimock.AnyContext, reminder_aggregate.NewReminder(id, title, description)).
 		Return(nil)
 
 	handler := NewCommandHandler(reminderRepositoryMock)
-	require.NoError(t, handler.HandleCommand(t.Context(), command))
+	require.NoError(t, handler.HandleCommand(t.Context(), NewCommand(id, title, description)))
 }
 
 func TestCommandHandler_HandleCommand_Error(t *testing.T) {
@@ -48,26 +42,21 @@ func TestCommandHandler_HandleCommand_Error(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	id := reminder_id_model.GenerateReminderID()
-
 	title, err := reminder_title_model.NewReminderTitle(rand.Text())
 	require.NoError(t, err)
 
 	description, err := reminder_description_model.NewReminderDescription(rand.Text())
 	require.NoError(t, err)
 
-	command := NewCommand(id, title, description)
+	id := reminder_id_model.GenerateReminderID()
 
 	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		SaveReminderMock.
-		Inspect(func(ctx context.Context, reminder reminder_aggregate.Reminder) {
-			require.Equal(t, title, reminder.GetTitle())
-			require.Equal(t, description, reminder.GetDescription())
-		}).
+		Expect(minimock.AnyContext, reminder_aggregate.NewReminder(id, title, description)).
 		Return(assert.AnError)
 
 	handler := NewCommandHandler(reminderRepositoryMock)
-	require.ErrorIs(t, handler.HandleCommand(t.Context(), command), assert.AnError)
+	require.ErrorIs(t, handler.HandleCommand(t.Context(), NewCommand(id, title, description)), assert.AnError)
 }
 
 func TestTracerCommandHandler_HandleCommand(t *testing.T) {
@@ -75,22 +64,19 @@ func TestTracerCommandHandler_HandleCommand(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	id := reminder_id_model.GenerateReminderID()
-
 	title, err := reminder_title_model.NewReminderTitle(rand.Text())
 	require.NoError(t, err)
 
 	description, err := reminder_description_model.NewReminderDescription(rand.Text())
 	require.NoError(t, err)
 
+	id := reminder_id_model.GenerateReminderID()
+
 	command := NewCommand(id, title, description)
 
 	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		SaveReminderMock.
-		Inspect(func(ctx context.Context, reminder reminder_aggregate.Reminder) {
-			require.Equal(t, title, reminder.GetTitle())
-			require.Equal(t, description, reminder.GetDescription())
-		}).
+		Expect(minimock.AnyContext, reminder_aggregate.NewReminder(id, title, description)).
 		Return(nil)
 
 	handler := NewCommandHandler(reminderRepositoryMock)
@@ -105,22 +91,19 @@ func TestTracerCommandHandler_HandleCommand_Error(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	id := reminder_id_model.GenerateReminderID()
-
 	title, err := reminder_title_model.NewReminderTitle(rand.Text())
 	require.NoError(t, err)
 
 	description, err := reminder_description_model.NewReminderDescription(rand.Text())
 	require.NoError(t, err)
 
+	id := reminder_id_model.GenerateReminderID()
+
 	command := NewCommand(id, title, description)
 
 	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
 		SaveReminderMock.
-		Inspect(func(ctx context.Context, reminder reminder_aggregate.Reminder) {
-			require.Equal(t, title, reminder.GetTitle())
-			require.Equal(t, description, reminder.GetDescription())
-		}).
+		Expect(minimock.AnyContext, reminder_aggregate.NewReminder(id, title, description)).
 		Return(assert.AnError)
 
 	handler := NewCommandHandler(reminderRepositoryMock)
