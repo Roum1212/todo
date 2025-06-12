@@ -31,8 +31,8 @@ import (
 )
 
 type Config struct {
-	HTTPServer    ServerConfig `envPrefix:"HTTP_SERVER_"`
 	GRPCServer    ServerConfig `envPrefix:"GRPC_SERVER_"`
+	HTTPServer    ServerConfig `envPrefix:"HTTP_SERVER_"`
 	OpenTelemetry ServerConfig `envPrefix:"OPENTELEMETRY_"`
 	PostgreSQL    DBConfig     `envPrefix:"POSTGRESQL_"`
 }
