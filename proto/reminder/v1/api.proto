@@ -28,7 +28,6 @@ message CreateReminderResponse {
   int64 id = 1;
 }
 
-
 message DeleteReminderRequest {
   int64 id = 1;
 }
