@@ -27,6 +27,10 @@ func (x Command) GetTitle() reminder_title_model.ReminderTitle {
 }
 
 func (x Command) Validate() error {
+	if err := x.GetID().Validate(); err != nil {
+		return fmt.Errorf("invalid id %w", err)
+	}
+
 	if err := x.title.Validate(); err != nil {
 		return fmt.Errorf("invalid title: %w", err)
 	}

@@ -51,7 +51,9 @@ const (
 	IdleTimeout  = time.Second * 60
 )
 
-func main() {
+const goroutines = 2
+
+func main() { //nolint:gocognit // OK.
 	ctx := context.Background()
 
 	var cfg Config
@@ -164,11 +166,13 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	wg.Add(2)
+	wg.Add(goroutines)
 
 	go func() {
 		defer wg.Done()
-		if err = srv.ListenAndServe(); err != nil {
+
+		err = srv.ListenAndServe()
+		if err != nil {
 			slog.Error("failed to listen and serve http server", slog.Any("error", err))
 
 			return
@@ -184,7 +188,8 @@ func main() {
 
 		reminder_v1.RegisterReminderServiceServer(grpcServer, &createReminderGRPCServer)
 
-		if err = grpcServer.Serve(listener); err != nil {
+		err = grpcServer.Serve(listener)
+		if err != nil {
 			slog.ErrorContext(ctx, "failed to serve gRPC server", slog.Any("error", err))
 
 			return
