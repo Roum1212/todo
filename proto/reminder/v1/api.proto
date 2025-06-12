@@ -7,10 +7,10 @@ import "google/protobuf/empty.proto";
 option go_package = "github.com/Roum1212/todo/proto/reminder/v1;reminder_v1";
 
 service ReminderService {
+  rpc CreateReminder(CreateReminderRequest) returns (CreateReminderResponse);
   rpc DeleteReminder(DeleteReminderRequest) returns (google.protobuf.Empty);
   rpc GetAllReminders(google.protobuf.Empty) returns (GetAllRemindersResponse);
   rpc GetReminderByID(GetReminderByIDRequest) returns (GetReminderByIDResponse);
-  rpc CreateReminder(CreateReminderRequest) returns (CreateReminderResponse);
 }
 
 message Reminder {
