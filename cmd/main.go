@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/caarlos0/env/v11"
@@ -12,7 +14,9 @@ import (
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"google.golang.org/grpc"
 
+	create_reminder_grpc_server "github.com/Roum1212/todo/internal/api/grpc/server/create-reminder"
 	create_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/create-reminder"
 	delete_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/delete-reminder"
 	get_all_reminders_http_handler "github.com/Roum1212/todo/internal/api/http/handler/get-all-reminders"
@@ -23,10 +27,12 @@ import (
 	get_reminder_by_id_quary "github.com/Roum1212/todo/internal/app/query/get-reminder-by-id"
 	postgresql_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/postgresql"
 	opentelemetry "github.com/Roum1212/todo/internal/pkg/opentelementry"
+	reminder_v1 "github.com/Roum1212/todo/pkg/gen/reminder/v1"
 )
 
 type Config struct {
 	HTTPServer    ServerConfig `envPrefix:"HTTP_SERVER_"`
+	GRPCServer    ServerConfig `envPrefix:"GRPC_SERVER_"`
 	OpenTelemetry ServerConfig `envPrefix:"OPENTELEMETRY_"`
 	PostgreSQL    DBConfig     `envPrefix:"POSTGRESQL_"`
 }
@@ -148,9 +154,42 @@ func main() {
 		ReadTimeout:  ReadTimeout,
 		IdleTimeout:  IdleTimeout,
 	}
-	if err = srv.ListenAndServe(); err != nil {
-		slog.Error("failed to listen and serve http server", slog.Any("error", err))
+
+	listener, err := net.Listen("tcp", cfg.GRPCServer.Address)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to listen gRPC listener", slog.Any("error", err))
 
 		return
 	}
+
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		if err = srv.ListenAndServe(); err != nil {
+			slog.Error("failed to listen and serve http server", slog.Any("error", err))
+
+			return
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		grpcServer := grpc.NewServer()
+
+		createReminderGRPCServer := create_reminder_grpc_server.NewServer(createReminderCommand)
+
+		reminder_v1.RegisterReminderServiceServer(grpcServer, &createReminderGRPCServer)
+
+		if err = grpcServer.Serve(listener); err != nil {
+			slog.ErrorContext(ctx, "failed to serve gRPC server", slog.Any("error", err))
+
+			return
+		}
+	}()
+
+	wg.Wait()
 }

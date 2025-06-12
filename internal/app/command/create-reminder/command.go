@@ -4,12 +4,18 @@ import (
 	"fmt"
 
 	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"
+	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
 type Command struct {
+	id          reminder_id_model.ReminderID
 	title       reminder_title_model.ReminderTitle
 	description reminder_description_model.ReminderDescription
+}
+
+func (x Command) GetID() reminder_id_model.ReminderID {
+	return x.id
 }
 
 func (x Command) GetDescription() reminder_description_model.ReminderDescription {
@@ -33,10 +39,12 @@ func (x Command) Validate() error {
 }
 
 func NewCommand(
+	reminderID reminder_id_model.ReminderID,
 	reminderTitle reminder_title_model.ReminderTitle,
 	reminderDescription reminder_description_model.ReminderDescription,
 ) Command {
 	return Command{
+		id:          reminderID,
 		title:       reminderTitle,
 		description: reminderDescription,
 	}
