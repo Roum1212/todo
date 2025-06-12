@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 	"github.com/Roum1212/todo/internal/domain/aggregate/reminder/mock"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
@@ -45,6 +46,24 @@ func TestCommandHandler_HandleCommand_Error(t *testing.T) {
 
 	handler := NewCommandHandler(reminderRepositoryMock)
 	require.ErrorIs(t, handler.HandleCommand(t.Context(), command), assert.AnError)
+}
+
+func TestCommandHandler_HandleCommand_ErrReminderNotFound(t *testing.T) {
+	t.Parallel()
+
+	mc := minimock.NewController(t)
+
+	reminderID := reminder_id_model.GenerateReminderID()
+
+	command := NewCommand(reminderID)
+
+	reminderRepositoryMock := reminder_aggregate_mock.NewReminderRepositoryMock(mc).
+		DeleteReminderMock.
+		Expect(t.Context(), reminderID).
+		Return(reminder_aggregate.ErrReminderNotFound)
+
+	handler := NewCommandHandler(reminderRepositoryMock)
+	require.ErrorIs(t, handler.HandleCommand(t.Context(), command), ErrReminderNotFound)
 }
 
 func TestTracerCommandHandler_HandleCommand(t *testing.T) {

@@ -29,7 +29,7 @@ func (x commandHandler) HandleCommand(ctx context.Context, c Command) error {
 	if err := x.repository.DeleteReminder(ctx, c.id); err != nil {
 		switch {
 		case errors.Is(err, reminder_aggregate.ErrReminderNotFound):
-			return reminder_aggregate.ErrReminderNotFound
+			return ErrReminderNotFound
 		default:
 			return fmt.Errorf("failed to delete reminder: %w", err)
 		}
