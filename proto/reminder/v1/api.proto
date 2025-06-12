@@ -4,7 +4,14 @@ package reminder.v1;
 
 import "google/protobuf/empty.proto";
 
-option go_package = "github.com/Roum1212/todo/internal/proto/reminder/v1;reminderv1";
+option go_package = "github.com/Roum1212/todo/proto/reminder/v1;reminder_v1";
+
+service ReminderService {
+  rpc DeleteReminder(DeleteReminderRequest) returns (google.protobuf.Empty);
+  rpc GetAllReminders(google.protobuf.Empty) returns (GetAllRemindersResponse);
+  rpc GetReminderByID(GetReminderByIDRequest) returns (GetReminderByIDResponse);
+  rpc SaveReminder(SaveReminderRequest) returns (SaveReminderResponse);
+}
 
 message Reminder {
   int64 id = 1;
@@ -20,12 +27,12 @@ message GetAllRemindersResponse {
   repeated Reminder reminders = 1;
 }
 
-message GetReminderByIDResponse {
-  Reminder reminder = 1;
-}
-
 message GetReminderByIDRequest {
   int64 id = 1;
+}
+
+message GetReminderByIDResponse {
+  Reminder reminder = 1;
 }
 
 message SaveReminderRequest {
@@ -33,9 +40,6 @@ message SaveReminderRequest {
   string description = 2;
 }
 
-service ReminderService {
-  rpc DeleteReminder(DeleteReminderRequest) returns (google.protobuf.Empty);
-  rpc GetAllReminders(google.protobuf.Empty) returns (GetAllRemindersResponse);
-  rpc GetReminderByID(GetReminderByIDRequest) returns (GetReminderByIDResponse);
-  rpc SaveReminder(SaveReminderRequest) returns (google.protobuf.Empty);
+message SaveReminderResponse {
+  int64 id = 1;
 }
