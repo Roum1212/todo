@@ -17,7 +17,7 @@ import (
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 )
 
-func TestHandler_ServeHTTP_OK(t *testing.T) {
+func TestHandler_ServeHTTP_NoContent(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
@@ -45,7 +45,7 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 
 	router.ServeHTTP(recorder, r)
 
-	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Equal(t, http.StatusNoContent, recorder.Code)
 }
 
 func TestHandler_ServeHTTP_BadRequest(t *testing.T) {
@@ -99,4 +99,35 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 	router.ServeHTTP(recorder, r)
 
 	require.Equal(t, http.StatusInternalServerError, recorder.Code)
+}
+
+func TestHandler_ServeHTTP_NotFound(t *testing.T) {
+	t.Parallel()
+
+	mc := minimock.NewController(t)
+
+	reminderID := reminder_id_model.GenerateReminderID()
+
+	commandHandlerMock := delete_reminder_command_mock.NewCommandHandlerMock(mc).
+		HandleCommandMock.
+		Expect(minimock.AnyContext, delete_reminder_command.NewCommand(reminderID)).
+		Return(delete_reminder_command.ErrReminderNotFound)
+
+	httpHandler := NewHTTPHandler(commandHandlerMock)
+
+	router := httprouter.New()
+	router.Handler(http.MethodDelete, Endpoint, httpHandler)
+
+	r := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodDelete,
+		strings.ReplaceAll(Endpoint, paramID, strconv.FormatInt(int64(reminderID), 10)),
+		http.NoBody,
+	)
+
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, r)
+
+	require.Equal(t, http.StatusNotFound, recorder.Code)
 }

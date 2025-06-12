@@ -64,8 +64,13 @@ func (x Repository) DeleteReminder(
 		return fmt.Errorf("failed to build sql: %w", err)
 	}
 
-	if _, err = x.client.Exec(ctx, sql, args...); err != nil {
+	commandTag, err := x.client.Exec(ctx, sql, args...)
+	if err != nil {
 		return fmt.Errorf("failed to execute sql: %w", err)
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		return reminder_aggregate.ErrReminderNotFound
 	}
 
 	return nil

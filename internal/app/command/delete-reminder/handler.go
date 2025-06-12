@@ -2,6 +2,7 @@ package delete_reminder_command
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"go.opentelemetry.io/otel"
@@ -10,6 +11,8 @@ import (
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 )
+
+var ErrReminderNotFound = errors.New("reminder not found")
 
 const tracerName = "github.com/Roum1212/todo/internal/app/command/delete-reminder"
 
@@ -24,7 +27,12 @@ type commandHandler struct {
 
 func (x commandHandler) HandleCommand(ctx context.Context, c Command) error {
 	if err := x.repository.DeleteReminder(ctx, c.id); err != nil {
-		return fmt.Errorf("failed to delete reminder: %w", err)
+		switch {
+		case errors.Is(err, reminder_aggregate.ErrReminderNotFound):
+			return reminder_aggregate.ErrReminderNotFound
+		default:
+			return fmt.Errorf("failed to delete reminder: %w", err)
+		}
 	}
 
 	return nil
