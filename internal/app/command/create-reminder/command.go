@@ -14,12 +14,12 @@ type Command struct {
 	description reminder_description_model.ReminderDescription
 }
 
-func (x Command) GetDescription() reminder_description_model.ReminderDescription {
-	return x.description
-}
-
 func (x Command) GetID() reminder_id_model.ReminderID {
 	return x.id
+}
+
+func (x Command) GetDescription() reminder_description_model.ReminderDescription {
+	return x.description
 }
 
 func (x Command) GetTitle() reminder_title_model.ReminderTitle {
@@ -28,15 +28,15 @@ func (x Command) GetTitle() reminder_title_model.ReminderTitle {
 
 func (x Command) Validate() error {
 	if err := x.id.Validate(); err != nil {
-		return fmt.Errorf("invalid id %w", err)
-	}
-
-	if err := x.title.Validate(); err != nil {
-		return fmt.Errorf("invalid title: %w", err)
+		return fmt.Errorf("invalid id: %w", err)
 	}
 
 	if err := x.description.Validate(); err != nil {
 		return fmt.Errorf("invalid description: %w", err)
+	}
+
+	if err := x.title.Validate(); err != nil {
+		return fmt.Errorf("invalid title: %w", err)
 	}
 
 	return nil
