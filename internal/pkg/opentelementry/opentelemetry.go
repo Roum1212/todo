@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/log"
@@ -22,11 +22,11 @@ func NewLoggerProvider(
 	ctx context.Context,
 	res *resource.Resource,
 ) (*log.LoggerProvider, error) {
-	exporter, err := otlploghttp.New(
+	exporter, err := otlploggrpc.New(
 		ctx,
-		otlploghttp.WithEndpoint("otel-collector:4318"),
-		otlploghttp.WithInsecure(),
-		otlploghttp.WithRetry(otlploghttp.RetryConfig{
+		otlploggrpc.WithEndpoint("otel-collector:4317"),
+		otlploggrpc.WithInsecure(),
+		otlploggrpc.WithRetry(otlploggrpc.RetryConfig{
 			Enabled:         true,
 			InitialInterval: time.Second * 5,
 			MaxElapsedTime:  time.Minute,
@@ -34,7 +34,7 @@ func NewLoggerProvider(
 		}),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("otlploghttp.New: %w", err)
+		return nil, fmt.Errorf("otlploggrpc.New: %w", err)
 	}
 
 	x := log.NewLoggerProvider(
@@ -51,21 +51,21 @@ func NewMeterProvider(
 	ctx context.Context,
 	res *resource.Resource,
 ) (*metric.MeterProvider, error) {
-	exporter, err := otlpmetrichttp.New(
+	exporter, err := otlpmetricgrpc.New(
 		ctx,
-		otlpmetrichttp.WithEndpoint("otel-collector:4318"),
-		otlpmetrichttp.WithInsecure(),
-		// otlpmetrichttp.WithHeaders(),
-		otlpmetrichttp.WithRetry(otlpmetrichttp.RetryConfig{
+		otlpmetricgrpc.WithEndpoint("otel-collector:4317"),
+		otlpmetricgrpc.WithInsecure(),
+		// otlpmetricgrpc .WithHeaders(),
+		otlpmetricgrpc.WithRetry(otlpmetricgrpc.RetryConfig{
 			Enabled:         true,
 			InitialInterval: time.Second * 5,
 			MaxElapsedTime:  time.Minute,
 			MaxInterval:     time.Second * 30,
 		}),
-		// otlpmetrichttp.WithTemporalitySelector(),
+		// otlpmetricgrpc .WithTemporalitySelector(),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("otlpmetrichttp.New: %w", err)
+		return nil, fmt.Errorf("otlpmetricgrpc.New: %w", err)
 	}
 
 	x := metric.NewMeterProvider(
@@ -83,12 +83,12 @@ func NewTracerProvider(
 	ctx context.Context,
 	res *resource.Resource,
 ) (*trace.TracerProvider, error) {
-	exporter, err := otlptracehttp.New(
+	exporter, err := otlptracegrpc.New(
 		ctx,
-		otlptracehttp.WithEndpoint("otel-collector:4318"),
-		otlptracehttp.WithInsecure(),
-		// otlptracehttp.WithHeaders(),
-		otlptracehttp.WithRetry(otlptracehttp.RetryConfig{
+		otlptracegrpc.WithEndpoint("otel-collector:4317"),
+		otlptracegrpc.WithInsecure(),
+		// otlptracegrpc .WithHeaders(),
+		otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{
 			Enabled:         true,
 			InitialInterval: time.Second * 5,
 			MaxElapsedTime:  time.Minute,
@@ -96,7 +96,7 @@ func NewTracerProvider(
 		}),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("otlptracehttp.New: %w", err)
+		return nil, fmt.Errorf("otlptracegrpc.New: %w", err)
 	}
 
 	x := trace.NewTracerProvider(

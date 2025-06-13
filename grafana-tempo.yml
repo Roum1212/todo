@@ -17,8 +17,8 @@ distributor:
   receivers:
     otlp:
       protocols:
-        http:
-          endpoint: "grafana-tempo:4318"
+        grpc:
+          endpoint: "grafana-tempo:4317"
 
 
 ingester:
