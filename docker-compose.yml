@@ -3,12 +3,14 @@ services:
     build: .
     ports:
       - "9443:9443"
+      - "50051:50051"
     depends_on:
       - postgresql
     environment:
-      POSTGRESQL_DSN: ${POSTGRESQL_DSN}
+      GRPC_SERVER_ADDRESS: ${GRPC_SERVER_ADDRESS}
       HTTP_SERVER_ADDRESS: ${HTTP_SERVER_ADDRESS}
       OPENTELEMETRY_ADDRESS: ${OPENTELEMETRY_ADDRESS}
+      POSTGRESQL_DSN: ${POSTGRESQL_DSN}
     volumes:
       - ./migrations/postgresql:/migrations
 

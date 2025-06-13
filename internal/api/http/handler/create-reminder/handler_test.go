@@ -2,6 +2,7 @@ package create_reminder_http_handler
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/json"
 	"net/http"
@@ -36,7 +37,10 @@ func TestHandler_ServeHTTP_Created(t *testing.T) {
 
 	commandHandlerMock := create_reminder_command_mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
-		Expect(minimock.AnyContext, create_reminder_command.NewCommand(title, description)).
+		Inspect(func(ctx context.Context, c create_reminder_command.Command) {
+			require.Equal(t, title, c.GetTitle())
+			require.Equal(t, description, c.GetDescription())
+		}).
 		Return(nil)
 
 	httpHandler := NewHTTPHandler(commandHandlerMock)
@@ -159,7 +163,10 @@ func TestHandler_ServeHTTP_InternalServerError(t *testing.T) {
 
 	commandHandlerMock := create_reminder_command_mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
-		Expect(minimock.AnyContext, create_reminder_command.NewCommand(title, description)).
+		Inspect(func(ctx context.Context, c create_reminder_command.Command) {
+			require.Equal(t, title, c.GetTitle())
+			require.Equal(t, description, c.GetDescription())
+		}).
 		Return(assert.AnError)
 
 	httpHandler := NewHTTPHandler(commandHandlerMock)

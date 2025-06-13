@@ -13,5 +13,14 @@
 !/docker-compose.yml
 !/Dockerfile
 !/migrations/**
+!/proto/**
+!/buf.yml
+!/buf.gen.yml
+!/grafana-datasources.yml
+!/grafana-tempo.yml
+!/loki-config.yml
+!/otel-collector.yml
+!/prometheus.yml
+!/promtail-config.yml
 
 !*/

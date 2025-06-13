@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net"
 	"net/http"
 	"time"
 
@@ -12,7 +13,11 @@ import (
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 
+	create_reminder_rpc "github.com/Roum1212/todo/internal/api/grpc/rpc/create-reminder"
+	grpc_server "github.com/Roum1212/todo/internal/api/grpc/server"
 	create_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/create-reminder"
 	delete_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/delete-reminder"
 	get_all_reminders_http_handler "github.com/Roum1212/todo/internal/api/http/handler/get-all-reminders"
@@ -20,12 +25,14 @@ import (
 	create_reminder_command "github.com/Roum1212/todo/internal/app/command/create-reminder"
 	delete_reminder_command "github.com/Roum1212/todo/internal/app/command/delete-reminder"
 	get_all_reminders_query "github.com/Roum1212/todo/internal/app/query/get-all-reminders"
-	get_reminder_by_id_quary "github.com/Roum1212/todo/internal/app/query/get-reminder-by-id"
+	get_reminder_by_id_query "github.com/Roum1212/todo/internal/app/query/get-reminder-by-id"
 	postgresql_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/postgresql"
 	opentelemetry "github.com/Roum1212/todo/internal/pkg/opentelementry"
+	reminder_v1 "github.com/Roum1212/todo/pkg/gen/reminder/v1"
 )
 
 type Config struct {
+	GRPCServer    ServerConfig `envPrefix:"GRPC_SERVER_"`
 	HTTPServer    ServerConfig `envPrefix:"HTTP_SERVER_"`
 	OpenTelemetry ServerConfig `envPrefix:"OPENTELEMETRY_"`
 	PostgreSQL    DBConfig     `envPrefix:"POSTGRESQL_"`
@@ -45,7 +52,7 @@ const (
 	IdleTimeout  = time.Second * 60
 )
 
-func main() {
+func main() { //nolint:gocognit,cyclop // OK.
 	ctx := context.Background()
 
 	var cfg Config
@@ -127,8 +134,8 @@ func main() {
 	getAllRemindersQuery := get_all_reminders_query.NewQueryHandler(reminderRepository)
 	getAllRemindersQuery = get_all_reminders_query.NewQueryHandlerTracer(getAllRemindersQuery)
 
-	getReminderByIDQuery := get_reminder_by_id_quary.NewQueryHandler(reminderRepository)
-	getReminderByIDQuery = get_reminder_by_id_quary.NewQueryHandlerTracer(getReminderByIDQuery)
+	getReminderByIDQuery := get_reminder_by_id_query.NewQueryHandler(reminderRepository)
+	getReminderByIDQuery = get_reminder_by_id_query.NewQueryHandlerTracer(getReminderByIDQuery)
 
 	createReminderHTTPHandler := create_reminder_http_handler.NewHTTPHandler(createReminderCommand)
 	deleteReminderHTTPHandler := delete_reminder_http_handler.NewHTTPHandler(deleteReminderCommand)
@@ -148,8 +155,45 @@ func main() {
 		ReadTimeout:  ReadTimeout,
 		IdleTimeout:  IdleTimeout,
 	}
-	if err = srv.ListenAndServe(); err != nil {
-		slog.Error("failed to listen and serve http server", slog.Any("error", err))
+
+	listen, err := net.Listen("tcp", cfg.GRPCServer.Address)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to listen grpc server", slog.Any("error", err))
+
+		return
+	}
+
+	grpcServer := grpc.NewServer()
+
+	reminder_v1.RegisterReminderServiceServer(
+		grpcServer,
+		grpc_server.NewCreateReminderService(create_reminder_rpc.NewCreateReminderRPC(createReminderCommand)),
+	)
+
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		if err = srv.ListenAndServe(); err != nil {
+			slog.Error("failed to listen and serve http server", slog.Any("error", err))
+
+			return err
+		}
+
+		return nil
+	})
+
+	g.Go(func() error {
+		if err = grpcServer.Serve(listen); err != nil {
+			slog.ErrorContext(ctx, "failed to serve grpc server", slog.Any("error", err))
+
+			return err
+		}
+
+		return nil
+	})
+
+	if err = g.Wait(); err != nil {
+		slog.ErrorContext(ctx, "failed to shutdown server", slog.Any("error", err))
 
 		return
 	}

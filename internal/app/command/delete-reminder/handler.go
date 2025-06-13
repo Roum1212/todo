@@ -2,6 +2,7 @@ package delete_reminder_command
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"go.opentelemetry.io/otel"
@@ -12,6 +13,8 @@ import (
 )
 
 const tracerName = "github.com/Roum1212/todo/internal/app/command/delete-reminder"
+
+var ErrReminderNotFound = errors.New("reminder not found")
 
 //go:generate minimock -i CommandHandler -g -o ./mock -p delete_reminder_command_mock -s "_minimock.go"
 type CommandHandler interface {
@@ -24,7 +27,12 @@ type commandHandler struct {
 
 func (x commandHandler) HandleCommand(ctx context.Context, c Command) error {
 	if err := x.repository.DeleteReminder(ctx, c.id); err != nil {
-		return fmt.Errorf("failed to delete reminder: %w", err)
+		switch {
+		case errors.Is(err, reminder_aggregate.ErrReminderNotFound):
+			return ErrReminderNotFound
+		default:
+			return fmt.Errorf("failed to delete reminder: %w", err)
+		}
 	}
 
 	return nil
@@ -42,7 +50,7 @@ type tracerCommandHandler struct {
 }
 
 func (x tracerCommandHandler) HandleCommand(ctx context.Context, c Command) error {
-	_, span := x.tracer.Start(ctx, "CommandHandler.HandleCommand")
+	_, span := x.tracer.Start(ctx, "commandHandler.HandleCommand")
 	defer span.End()
 
 	if err := x.commandHandler.HandleCommand(ctx, c); err != nil {

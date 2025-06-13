@@ -148,6 +148,8 @@ linters:
             - go.opentelemetry.io/contrib/bridges/otelslog
             - go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp
             - go.opentelemetry.io/otel
+            - google.golang.org/grpc
+            - golang.org/x/sync/errgroup
           files:
             - "!$test"
         main:

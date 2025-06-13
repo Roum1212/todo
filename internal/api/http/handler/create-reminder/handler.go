@@ -6,6 +6,7 @@ import (
 
 	create_reminder_command "github.com/Roum1212/todo/internal/app/command/create-reminder"
 	reminder_description_model "github.com/Roum1212/todo/internal/domain/model/reminder-description"
+	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
 	reminder_title_model "github.com/Roum1212/todo/internal/domain/model/reminder-title"
 )
 
@@ -38,9 +39,11 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	reminderID := reminder_id_model.GenerateReminderID()
+
 	if err = x.commandHandler.HandleCommand(
 		r.Context(),
-		create_reminder_command.NewCommand(reminderTitle, reminderDescription),
+		create_reminder_command.NewCommand(reminderID, reminderTitle, reminderDescription),
 	); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 

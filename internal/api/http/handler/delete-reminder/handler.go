@@ -1,6 +1,7 @@
 package delete_reminder_http_handler
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -34,12 +35,19 @@ func (x Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		delete_reminder_command.NewCommand(reminderID),
 	); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		switch {
+		case errors.Is(err, delete_reminder_command.ErrReminderNotFound):
+			http.Error(w, err.Error(), http.StatusNotFound)
 
-		return
+			return
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+			return
+		}
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func NewHTTPHandler(commandHandler delete_reminder_command.CommandHandler) Handler {
