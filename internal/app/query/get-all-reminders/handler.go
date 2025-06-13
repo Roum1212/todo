@@ -12,9 +12,9 @@ import (
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 )
 
-var ErrReminderNotFound = errors.New("reminders not found")
-
 const tracerName = "github.com/Roum1212/todo/internal/app/query/get-all-reminders"
+
+var ErrReminderNotFound = errors.New("reminders not found")
 
 //go:generate minimock -i QueryHandler -g -o ./mock -p get_all_reminders_query_mock -s "_minimock.go"
 type QueryHandler interface {

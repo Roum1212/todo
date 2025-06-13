@@ -1,23 +1,20 @@
-#!make
 include .env
 
-LOCAL_BIN := $(CURDIR)/bin
-PATH := $(PATH):$(LOCAL_BIN)
+APP_VERSION ?= `git describe --tags || echo "v0.0.1"`
 
 BUF_VERSION := v1.50.1
+GOLANGCI_LINT_VERSION := v2.1.2
+LOCAL_BIN := $(CURDIR)/bin
+PATH := $(PATH):$(LOCAL_BIN)
 PROTOC_GEN_GO_VERSION := v1.36.6
 PROTOC_GEN_GO_GRPC_VERSION := v1.5.1
 PROTOC_GEN_GRPC_GATEWAY_VERSION := v2.26.3
 
-GOLANGCI_LINT_VERSION := v2.1.2
-
-APP_VERSION ?= `git describe --tags || echo "v0.0.1"`
+.buf-install:
+	GOBIN=$(LOCAL_BIN) go install github.com/bufbuild/buf/cmd/buf@$(BUF_VERSION)
 
 .golangci-lint-install:
 	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
-
-.buf-install:
-	GOBIN=$(LOCAL_BIN) go install github.com/bufbuild/buf/cmd/buf@$(BUF_VERSION)
 
 .proto-install: .buf-install
 	GOBIN=$(LOCAL_BIN) go install \
@@ -25,22 +22,6 @@ APP_VERSION ?= `git describe --tags || echo "v0.0.1"`
 		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@$(PROTOC_GEN_GRPC_GATEWAY_VERSION)
 	GOBIN=$(LOCAL_BIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@$(PROTOC_GEN_GO_GRPC_VERSION)
 	GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@$(PROTOC_GEN_GO_VERSION)
-
-.PHONY: proto-generate
-proto-generate: .proto-install .vendor-proto
-	$(LOCAL_BIN)/buf generate --config buf.yml --template buf.gen.yml
-
-.PHONY: proto-lint
-proto-lint: .buf-install
-	$(LOCAL_BIN)/buf lint
-
-.PHONY: go-fmt
-go-fmt: .golangci-lint-install
-	$(LOCAL_BIN)/golangci-lint fmt -c .golangci.yml
-
-.PHONY: go-lint
-go-lint: .golangci-lint-install
-	$(LOCAL_BIN)/golangci-lint run -c .golangci.yml ./...
 
 .vendor-proto: .vendor-proto-remove .vendor-proto-install/google/api .vendor-proto-install/protoc-gen-openapiv2/options
 
@@ -74,3 +55,19 @@ go-lint: .golangci-lint-install
 
 .vendor-proto-remove:
 	rm -rf vendor-proto
+
+.PHONY: go-fmt
+go-fmt: .golangci-lint-install
+	$(LOCAL_BIN)/golangci-lint fmt -c .golangci.yml
+
+.PHONY: go-lint
+go-lint: .golangci-lint-install
+	$(LOCAL_BIN)/golangci-lint run -c .golangci.yml ./...
+
+.PHONY: proto-generate
+proto-generate: .proto-install .vendor-proto
+	$(LOCAL_BIN)/buf generate --config buf.yml --template buf.gen.yml
+
+.PHONY: proto-lint
+proto-lint: .buf-install
+	$(LOCAL_BIN)/buf lint

@@ -13,7 +13,7 @@ import (
 
 const tracerName = "github.com/Roum1212/todo/internal/app/command/create-reminder"
 
-//go:generate minimock -i commandHandler -g -o ./mock -p create_reminder_command_mock -s "_minimock.go"
+//go:generate minimock -i CommandHandler -g -o ./mock -p create_reminder_command_mock -s "_minimock.go"
 type CommandHandler interface {
 	HandleCommand(ctx context.Context, command Command) error
 }

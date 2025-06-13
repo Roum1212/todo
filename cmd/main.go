@@ -16,7 +16,8 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
-	server_grpc "github.com/Roum1212/todo/internal/api/grpc/server"
+	create_reminder_rpc "github.com/Roum1212/todo/internal/api/grpc/rpc/create-reminder"
+	grpc_server "github.com/Roum1212/todo/internal/api/grpc/server"
 	create_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/create-reminder"
 	delete_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/delete-reminder"
 	get_all_reminders_http_handler "github.com/Roum1212/todo/internal/api/http/handler/get-all-reminders"
@@ -155,11 +156,24 @@ func main() { //nolint:gocognit,cyclop // OK.
 		IdleTimeout:  IdleTimeout,
 	}
 
+	listen, err := net.Listen("tcp", cfg.GRPCServer.Address)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to listen grpc server", slog.Any("error", err))
+
+		return
+	}
+
+	grpcServer := grpc.NewServer()
+
+	reminder_v1.RegisterReminderServiceServer(
+		grpcServer,
+		grpc_server.NewCreateReminderService(create_reminder_rpc.NewCreateReminderRPC(createReminderCommand)),
+	)
+
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		err = srv.ListenAndServe()
-		if err != nil {
+		if err = srv.ListenAndServe(); err != nil {
 			slog.Error("failed to listen and serve http server", slog.Any("error", err))
 
 			return err
@@ -169,31 +183,17 @@ func main() { //nolint:gocognit,cyclop // OK.
 	})
 
 	g.Go(func() error {
-		listen, ListenErr := net.Listen("tcp", cfg.GRPCServer.Address)
-		if ListenErr != nil {
-			slog.ErrorContext(ctx, "failed to listen grpc server", slog.Any("error", ListenErr))
+		if err = grpcServer.Serve(listen); err != nil {
+			slog.ErrorContext(ctx, "failed to serve grpc server", slog.Any("error", err))
 
-			return ListenErr
-		}
-
-		grpcServer := grpc.NewServer()
-
-		reminder_v1.RegisterReminderServiceServer(
-			grpcServer,
-			server_grpc.NewCreateReminderService(createReminderCommand),
-		)
-
-		if ServerErr := grpcServer.Serve(listen); ServerErr != nil {
-			slog.ErrorContext(ctx, "failed to serve grpc server", slog.Any("error", ServerErr))
-
-			return ServerErr
+			return err
 		}
 
 		return nil
 	})
 
 	if err = g.Wait(); err != nil {
-		slog.ErrorContext(ctx, "failed to shutdown grpc server", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to shutdown server", slog.Any("error", err))
 
 		return
 	}

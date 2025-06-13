@@ -27,7 +27,7 @@ func (x Command) GetTitle() reminder_title_model.ReminderTitle {
 }
 
 func (x Command) Validate() error {
-	if err := x.GetID().Validate(); err != nil {
+	if err := x.id.Validate(); err != nil {
 		return fmt.Errorf("invalid id %w", err)
 	}
 
@@ -43,13 +43,13 @@ func (x Command) Validate() error {
 }
 
 func NewCommand(
-	reminderID reminder_id_model.ReminderID,
-	reminderTitle reminder_title_model.ReminderTitle,
-	reminderDescription reminder_description_model.ReminderDescription,
+	id reminder_id_model.ReminderID,
+	title reminder_title_model.ReminderTitle,
+	description reminder_description_model.ReminderDescription,
 ) Command {
 	return Command{
-		id:          reminderID,
-		title:       reminderTitle,
-		description: reminderDescription,
+		id:          id,
+		title:       title,
+		description: description,
 	}
 }
