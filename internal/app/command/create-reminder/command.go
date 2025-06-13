@@ -18,12 +18,12 @@ func (x Command) GetID() reminder_id_model.ReminderID {
 	return x.id
 }
 
-func (x Command) GetDescription() reminder_description_model.ReminderDescription {
-	return x.description
-}
-
 func (x Command) GetTitle() reminder_title_model.ReminderTitle {
 	return x.title
+}
+
+func (x Command) GetDescription() reminder_description_model.ReminderDescription {
+	return x.description
 }
 
 func (x Command) Validate() error {
@@ -31,12 +31,12 @@ func (x Command) Validate() error {
 		return fmt.Errorf("invalid id: %w", err)
 	}
 
-	if err := x.description.Validate(); err != nil {
-		return fmt.Errorf("invalid description: %w", err)
-	}
-
 	if err := x.title.Validate(); err != nil {
 		return fmt.Errorf("invalid title: %w", err)
+	}
+
+	if err := x.description.Validate(); err != nil {
+		return fmt.Errorf("invalid description: %w", err)
 	}
 
 	return nil
