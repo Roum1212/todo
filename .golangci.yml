@@ -151,6 +151,7 @@ linters:
             - go.opentelemetry.io/otel
             - golang.org/x/sync/errgroup
             - google.golang.org/grpc
+            - google.golang.org/protobuf/types/known/emptypb
           files:
             - "!$test"
         main:
