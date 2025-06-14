@@ -13,6 +13,8 @@ import (
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
@@ -163,7 +165,21 @@ func main() { //nolint:gocognit,cyclop // OK.
 		return
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(func(
+			ctx context.Context,
+			req interface{},
+			info *grpc.UnaryServerInfo,
+			handler grpc.UnaryHandler,
+		) (interface{}, error) {
+			tracer := otel.Tracer("gRPC Server")
+			ctx, span := tracer.Start(ctx, "gRPC Server", trace.WithSpanKind(trace.SpanKindServer))
+			defer span.End()
+
+			return handler(ctx, req)
+		},
+		),
+	)
 
 	reminder_v1.RegisterReminderServiceServer(
 		grpcServer,

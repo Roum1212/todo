@@ -12,6 +12,7 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.10.0
 	go.opentelemetry.io/contrib/bridges/otelslog v0.11.0
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0
 	go.opentelemetry.io/otel v1.36.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.12.2
