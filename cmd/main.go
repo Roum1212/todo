@@ -54,6 +54,8 @@ const (
 	IdleTimeout  = time.Second * 60
 )
 
+const tracerName = "github.com/Roum1212/todo/cmd"
+
 func main() { //nolint:gocognit,cyclop // OK.
 	ctx := context.Background()
 
@@ -172,8 +174,9 @@ func main() { //nolint:gocognit,cyclop // OK.
 			info *grpc.UnaryServerInfo,
 			handler grpc.UnaryHandler,
 		) (interface{}, error) {
-			tracer := otel.Tracer("gRPC Server")
+			tracer := otel.Tracer(tracerName)
 			ctx, span := tracer.Start(ctx, "gRPC Server", trace.WithSpanKind(trace.SpanKindServer))
+
 			defer span.End()
 
 			return handler(ctx, req)
