@@ -19,7 +19,7 @@ type GetAllRemindersRPC struct {
 
 func (x GetAllRemindersRPC) GetAllReminders(
 	ctx context.Context,
-	empty *emptypb.Empty,
+	_ *emptypb.Empty,
 ) (*reminder_v1.GetAllRemindersResponse, error) {
 	reminders, err := x.queryHandler.HandleQuery(ctx)
 	if err != nil {
@@ -27,7 +27,7 @@ func (x GetAllRemindersRPC) GetAllReminders(
 		case errors.Is(err, get_all_reminders_query.ErrReminderNotFound):
 			return nil, status.Errorf(codes.NotFound, "reminders not found: %v", err)
 		default:
-			return nil, status.Errorf(codes.Internal, "internal error: %v", err)
+			return nil, status.Errorf(codes.Internal, "failed to get all reminders: %v", err)
 		}
 	}
 
@@ -37,16 +37,16 @@ func (x GetAllRemindersRPC) GetAllReminders(
 }
 
 func ToProtoReminders(reminders []reminder_aggregate.Reminder) []*reminder_v1.Reminder {
-	remindersProto := make([]*reminder_v1.Reminder, len(reminders))
+	pbReminders := make([]*reminder_v1.Reminder, len(reminders))
 	for i := range reminders {
-		remindersProto[i] = &reminder_v1.Reminder{
+		pbReminders[i] = &reminder_v1.Reminder{
 			Id:          int64(reminders[i].GetID()),
 			Title:       string(reminders[i].GetTitle()),
 			Description: string(reminders[i].GetDescription()),
 		}
 	}
 
-	return remindersProto
+	return pbReminders
 }
 
 func NewGetAllRemindersRPC(queryHandler get_all_reminders_query.QueryHandler) GetAllRemindersRPC {

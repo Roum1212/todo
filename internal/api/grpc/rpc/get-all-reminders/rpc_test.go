@@ -65,7 +65,8 @@ func TestGetAllRemindersRPC_GetAllReminders_ErrReminderNotFound(t *testing.T) {
 	getAllRemindersResponse, err := getAllRemindersRPC.GetAllReminders(t.Context(), &emptypb.Empty{})
 	require.Nil(t, getAllRemindersResponse)
 
-	st, _ := status.FromError(err)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
 	require.Equal(t, codes.NotFound, st.Code())
 }
 
@@ -84,6 +85,7 @@ func TestGetAllRemindersRPC_GetAllReminders_Internal(t *testing.T) {
 	getAllRemindersResponse, err := getAllRemindersRPC.GetAllReminders(t.Context(), &emptypb.Empty{})
 	require.Nil(t, getAllRemindersResponse)
 
-	st, _ := status.FromError(err)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
 	require.Equal(t, codes.Internal, st.Code())
 }

@@ -65,7 +65,8 @@ func TestGetReminderByIDRPC_GetReminderByID_ErrReminderNotFound(t *testing.T) {
 	getReminderByIDResponse, err := getReminderByIDRPC.GetReminderByID(t.Context(), &request)
 	require.Nil(t, getReminderByIDResponse)
 
-	st, _ := status.FromError(err)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
 	require.Equal(t, codes.NotFound, st.Code())
 }
 
@@ -88,6 +89,24 @@ func TestGetReminderByIDRPC_GetReminderByID_Internal(t *testing.T) {
 	getReminderByIDResponse, err := getReminderByIDRPC.GetReminderByID(t.Context(), &request)
 	require.Nil(t, getReminderByIDResponse)
 
-	st, _ := status.FromError(err)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
 	require.Equal(t, codes.Internal, st.Code())
+}
+
+func TestGetReminderByIDRPC_GetReminderBy_InvalidArgument(t *testing.T) {
+	t.Parallel()
+
+	request := reminder_v1.GetReminderByIDRequest{
+		Id: 0,
+	}
+
+	getReminderByIDRPC := NewGetReminderByIDRPC(nil)
+
+	getReminderByIDResponse, err := getReminderByIDRPC.GetReminderByID(t.Context(), &request)
+	require.Nil(t, getReminderByIDResponse)
+
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	require.Equal(t, codes.InvalidArgument, st.Code())
 }

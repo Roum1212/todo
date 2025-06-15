@@ -21,15 +21,20 @@ func (x DeleteReminderRPC) DeleteReminder(
 	ctx context.Context,
 	r *reminder_v1.DeleteReminderRequest,
 ) (*emptypb.Empty, error) {
-	if err := x.commandHandler.HandleCommand(
+	reminderID, err := reminder_id_model.NewReminderID(r.GetId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid reminderID: %v", err)
+	}
+
+	if err = x.commandHandler.HandleCommand(
 		ctx,
-		delete_reminder_command.NewCommand(reminder_id_model.ReminderID(r.Id)),
+		delete_reminder_command.NewCommand(reminderID),
 	); err != nil {
 		switch {
 		case errors.Is(err, delete_reminder_command.ErrReminderNotFound):
 			return nil, status.Errorf(codes.NotFound, "reminder not found: %v", err)
 		default:
-			return nil, status.Errorf(codes.Internal, "internal error: %v", err)
+			return nil, status.Errorf(codes.Internal, "failed to delete reminder: %v", err)
 		}
 	}
 

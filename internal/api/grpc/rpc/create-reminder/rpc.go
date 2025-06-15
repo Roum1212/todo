@@ -37,7 +37,7 @@ func (x CreateReminderRPC) CreateReminder(
 		ctx,
 		create_reminder_command.NewCommand(reminderID, reminderTitle, reminderDescription),
 	); err != nil {
-		return nil, status.Errorf(codes.Internal, "internal error: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to create reminder: %v", err)
 	}
 
 	return &reminder_v1.CreateReminderResponse{

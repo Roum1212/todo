@@ -21,16 +21,21 @@ func (x GetReminderByIDRPC) GetReminderByID(
 	ctx context.Context,
 	r *reminder_v1.GetReminderByIDRequest,
 ) (*reminder_v1.GetReminderByIDResponse, error) {
+	reminderID, err := reminder_id_model.NewReminderID(r.GetId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid reminderID: %v", err)
+	}
+
 	reminder, err := x.queryHandler.HandleQuery(
 		ctx,
-		get_reminder_by_id_query.NewQuery(reminder_id_model.ReminderID(r.Id)),
+		get_reminder_by_id_query.NewQuery(reminderID),
 	)
 	if err != nil {
 		switch {
 		case errors.Is(err, get_reminder_by_id_query.ErrReminderNotFound):
 			return nil, status.Errorf(codes.NotFound, "reminder not found: %v", err)
 		default:
-			return nil, status.Errorf(codes.Internal, "internal error: %v", err)
+			return nil, status.Errorf(codes.Internal, "failed to get reminder by id: %v", err)
 		}
 	}
 

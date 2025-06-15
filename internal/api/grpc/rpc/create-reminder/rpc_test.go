@@ -21,12 +21,12 @@ import (
 func TestCreateReminderRPC_CreateReminder(t *testing.T) {
 	t.Parallel()
 
+	mc := minimock.NewController(t)
+
 	request := reminder_v1.CreateReminderRequest{
 		Title:       rand.Text(),
 		Description: rand.Text(),
 	}
-
-	mc := minimock.NewController(t)
 
 	title, err := reminder_title_model.NewReminderTitle(request.Title)
 	require.NoError(t, err)
@@ -63,8 +63,11 @@ func TestCreateReminderRPC_CreateReminder_InvalidArgument(t *testing.T) {
 		createReminderRPC := NewCreateReminderRPC(nil)
 
 		createReminderResponse, err := createReminderRPC.CreateReminder(t.Context(), &request)
-		require.Error(t, err)
 		require.Nil(t, createReminderResponse)
+
+		st, ok := status.FromError(err)
+		require.True(t, ok)
+		require.Equal(t, codes.InvalidArgument, st.Code())
 	})
 
 	t.Run("invalid description", func(t *testing.T) {
@@ -78,8 +81,11 @@ func TestCreateReminderRPC_CreateReminder_InvalidArgument(t *testing.T) {
 		createReminderRPC := NewCreateReminderRPC(nil)
 
 		createReminderResponse, err := createReminderRPC.CreateReminder(t.Context(), &request)
-		require.Error(t, err)
 		require.Nil(t, createReminderResponse)
+
+		st, ok := status.FromError(err)
+		require.True(t, ok)
+		require.Equal(t, codes.InvalidArgument, st.Code())
 	})
 }
 
@@ -112,6 +118,7 @@ func TestCreateReminderRPC_CreateReminder_Internal(t *testing.T) {
 	createReminderResponse, err := createReminderRPC.CreateReminder(t.Context(), &request)
 	require.Nil(t, createReminderResponse)
 
-	st, _ := status.FromError(err)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
 	require.Equal(t, codes.Internal, st.Code())
 }
