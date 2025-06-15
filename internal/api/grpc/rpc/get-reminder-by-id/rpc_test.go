@@ -97,11 +97,9 @@ func TestGetReminderByIDRPC_GetReminderByID_Internal(t *testing.T) {
 func TestGetReminderByIDRPC_GetReminderBy_InvalidArgument(t *testing.T) {
 	t.Parallel()
 
-	request := reminder_v1.GetReminderByIDRequest{}
-
 	getReminderByIDRPC := NewGetReminderByIDRPC(nil)
 
-	getReminderByIDResponse, err := getReminderByIDRPC.GetReminderByID(t.Context(), &request)
+	getReminderByIDResponse, err := getReminderByIDRPC.GetReminderByID(t.Context(), &reminder_v1.GetReminderByIDRequest{})
 	require.Error(t, err)
 	require.Nil(t, getReminderByIDResponse)
 }

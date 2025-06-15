@@ -87,11 +87,9 @@ func TestDeleteReminderRPC_DeleteReminder_Internal(t *testing.T) {
 func TestDeleteReminderRPC_DeleteReminder_InvalidArgument(t *testing.T) {
 	t.Parallel()
 
-	request := reminder_v1.DeleteReminderRequest{}
-
 	deleteReminderRPC := NewDeleteReminderRPC(nil)
 
-	deleteReminderResponse, err := deleteReminderRPC.DeleteReminder(t.Context(), &request)
+	deleteReminderResponse, err := deleteReminderRPC.DeleteReminder(t.Context(), &reminder_v1.DeleteReminderRequest{})
 	require.Error(t, err)
 	require.Nil(t, deleteReminderResponse)
 }
