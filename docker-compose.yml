@@ -43,8 +43,8 @@ services:
   grafana-loki:
     image: grafana/loki:latest
     command: -config.file=/etc/loki/local-config.yml
-    ports:
-      - "3100:3100"
+    expose:
+      - 3100
     restart: unless-stopped
     volumes:
       - ./loki-config.yml:/etc/loki/local-config.yml
@@ -64,10 +64,9 @@ services:
     command: [ "-config.file=/etc/tempo.yml" ]
     depends_on:
       - init-grafana-tempo
-    ports:
-      - "3200:3200"
     expose:
-      - 4318
+      - 3200
+      - 4317
     restart: unless-stopped
     volumes:
       - grafana_tempo_data:/var/tempo
@@ -78,8 +77,9 @@ services:
     command: [ "--config", "/etc/otel-collector.yml" ]
     depends_on:
       - grafana-loki
-    ports:
-      - "4318:4318"
+    expose:
+      - 4317
+      - 4318
     restart: unless-stopped
     volumes:
       - ./otel-collector.yml:/etc/otel-collector.yml

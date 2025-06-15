@@ -12,7 +12,9 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
@@ -163,7 +165,12 @@ func main() { //nolint:gocognit,cyclop // OK.
 		return
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler(
+		otelgrpc.WithSpanOptions(
+			trace.WithSpanKind(trace.SpanKindServer),
+			trace.WithNewRoot(),
+		),
+	)))
 
 	reminder_v1.RegisterReminderServiceServer(
 		grpcServer,

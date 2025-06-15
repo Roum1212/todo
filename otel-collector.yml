@@ -6,6 +6,10 @@ exporters:
       insecure: true
   #    auth:
   #      authenticator: basicauth/logs
+  otlp:
+    endpoint: "http://grafana-tempo:4317"
+    tls:
+      insecure: true
   otlphttp:
     endpoint: "http://grafana-tempo:4318"
     tls:
@@ -31,8 +35,8 @@ processors:
 receivers:
   otlp:
     protocols:
-      http:
-        endpoint: "0.0.0.0:4318"
+      grpc:
+        endpoint: "0.0.0.0:4317"
 
   # TODO
   # CREATE USER postgres_exporter WITH PASSWORD 'your_password';
@@ -61,4 +65,4 @@ service:
       exporters: [ prometheus ]
     traces:
       receivers: [ otlp ]
-      exporters: [ otlphttp ]
+      exporters: [ otlphttp, otlp ]
