@@ -148,11 +148,9 @@ linters:
             - go.opentelemetry.io/contrib/bridges/otelslog
             - go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp
             - go.opentelemetry.io/otel
-            - golang.org/x/sync/errgroup
             - google.golang.org/grpc
-            - google.golang.org/grpc/codes
-            - google.golang.org/grpc/status
-            - google.golang.org/protobuf/types/known/emptypb
+            - golang.org/x/sync/errgroup
+            - go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc
           files:
             - "!$test"
         main:
@@ -243,14 +241,11 @@ linters:
             - $gostd
 
             # Third-party.
-            - github.com/gojuno/minimock/v3
             - github.com/jackc/pgx/v5
-            - github.com/julienschmidt/httprouter
             - github.com/stretchr/testify/require
+            - github.com/gojuno/minimock/v3
             - github.com/stretchr/testify/assert
-            - google.golang.org/grpc/codes
-            - google.golang.org/grpc/status
-            - google.golang.org/protobuf/types/known/emptypb
+            - github.com/julienschmidt/httprouter
           files:
             - "$test"
 
