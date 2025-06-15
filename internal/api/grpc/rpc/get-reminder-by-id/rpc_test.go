@@ -47,7 +47,7 @@ func TestGetReminderByIDRPC_GetReminderByID(t *testing.T) {
 
 	getReminderByIDResponse, err := getReminderByIDPRC.GetReminderByID(t.Context(), &request)
 	require.NoError(t, err)
-	require.Equal(t, NewReminderDTO(reminder), getReminderByIDResponse.GetReminder())
+	require.Equal(t, newReminderDTO(reminder), getReminderByIDResponse.GetReminder())
 }
 
 func TestGetReminderByIDRPC_GetReminderByID_ErrReminderNotFound(t *testing.T) {

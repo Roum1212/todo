@@ -59,7 +59,7 @@ func TestGetAllRemindersPRC_GetAllReminders(t *testing.T) {
 
 	getAllRemindersResponse, err := getAllRemindersRPC.GetAllReminders(t.Context(), &emptypb.Empty{})
 	require.NoError(t, err)
-	require.Equal(t, NewReminderDTOs(reminders), getAllRemindersResponse.GetReminders())
+	require.Equal(t, newReminderDTOs(reminders), getAllRemindersResponse.GetReminders())
 }
 
 func TestGetAllRemindersRPC_GetAllReminders_ErrReminderNotFound(t *testing.T) {

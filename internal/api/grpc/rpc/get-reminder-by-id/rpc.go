@@ -40,7 +40,7 @@ func (x GetReminderByIDRPC) GetReminderByID(
 	}
 
 	return &reminder_v1.GetReminderByIDResponse{
-		Reminder: NewReminderDTO(reminder),
+		Reminder: newReminderDTO(reminder),
 	}, nil
 }
 
@@ -50,7 +50,7 @@ func NewGetReminderByIDRPC(queryHandler get_reminder_by_id_query.QueryHandler) G
 	}
 }
 
-func NewReminderDTO(reminder reminder_aggregate.Reminder) *reminder_v1.Reminder {
+func newReminderDTO(reminder reminder_aggregate.Reminder) *reminder_v1.Reminder {
 	return &reminder_v1.Reminder{
 		Id:          int64(reminder.GetID()),
 		Title:       string(reminder.GetTitle()),

@@ -32,7 +32,7 @@ func (x GetAllRemindersRPC) GetAllReminders(
 	}
 
 	return &reminder_v1.GetAllRemindersResponse{
-		Reminders: NewReminderDTOs(reminders),
+		Reminders: newReminderDTOs(reminders),
 	}, nil
 }
 
@@ -42,7 +42,7 @@ func NewGetAllRemindersRPC(queryHandler get_all_reminders_query.QueryHandler) Ge
 	}
 }
 
-func NewReminderDTOs(reminders []reminder_aggregate.Reminder) []*reminder_v1.Reminder {
+func newReminderDTOs(reminders []reminder_aggregate.Reminder) []*reminder_v1.Reminder {
 	pbReminders := make([]*reminder_v1.Reminder, len(reminders))
 	for i := range reminders {
 		pbReminders[i] = &reminder_v1.Reminder{
