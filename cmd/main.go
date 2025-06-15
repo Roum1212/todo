@@ -12,8 +12,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -53,8 +53,6 @@ const (
 	ReadTimeout  = time.Second * 15
 	IdleTimeout  = time.Second * 60
 )
-
-const tracerName = "github.com/Roum1212/todo/cmd"
 
 func main() { //nolint:gocognit,cyclop // OK.
 	ctx := context.Background()
@@ -167,22 +165,12 @@ func main() { //nolint:gocognit,cyclop // OK.
 		return
 	}
 
-	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(func(
-			ctx context.Context,
-			req interface{},
-			info *grpc.UnaryServerInfo,
-			handler grpc.UnaryHandler,
-		) (interface{}, error) {
-			tracer := otel.Tracer(tracerName)
-			ctx, span := tracer.Start(ctx, "gRPC Server", trace.WithSpanKind(trace.SpanKindServer))
-
-			defer span.End()
-
-			return handler(ctx, req)
-		},
+	grpcServer := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler(
+		otelgrpc.WithSpanOptions(
+			trace.WithSpanKind(trace.SpanKindServer),
+			trace.WithNewRoot(),
 		),
-	)
+	)))
 
 	reminder_v1.RegisterReminderServiceServer(
 		grpcServer,

@@ -34,7 +34,7 @@ func NewLoggerProvider(
 		}),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("otlploggrpc.New: %w", err)
+		return nil, fmt.Errorf("failed to create opentelemetry log exporter: %w", err)
 	}
 
 	x := log.NewLoggerProvider(
@@ -65,7 +65,7 @@ func NewMeterProvider(
 		// otlpmetricgrpc .WithTemporalitySelector(),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("otlpmetricgrpc.New: %w", err)
+		return nil, fmt.Errorf("failed to create opentelemetry metric exporter: %w", err)
 	}
 
 	x := metric.NewMeterProvider(
@@ -96,7 +96,7 @@ func NewTracerProvider(
 		}),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("otlptracegrpc.New: %w", err)
+		return nil, fmt.Errorf("failed to create opentelemetry trace exporter: %w", err)
 	}
 
 	x := trace.NewTracerProvider(
