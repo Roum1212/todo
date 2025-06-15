@@ -243,11 +243,11 @@ linters:
             - $gostd
 
             # Third-party.
-            - github.com/jackc/pgx/v5
-            - github.com/stretchr/testify/require
             - github.com/gojuno/minimock/v3
-            - github.com/stretchr/testify/assert
+            - github.com/jackc/pgx/v5
             - github.com/julienschmidt/httprouter
+            - github.com/stretchr/testify/require
+            - github.com/stretchr/testify/assert
             - google.golang.org/grpc/codes
             - google.golang.org/grpc/status
             - google.golang.org/protobuf/types/known/emptypb
