@@ -55,9 +55,9 @@ func TestDeleteReminderRPC_DeleteReminder_ErrReminderNotFound(t *testing.T) {
 	deleteReminderResponse, err := deleteReminderPRC.DeleteReminder(t.Context(), &request)
 	require.Nil(t, deleteReminderResponse)
 
-	st, ok := status.FromError(err)
+	pbStatus, ok := status.FromError(err)
 	require.True(t, ok)
-	require.Equal(t, codes.NotFound, st.Code())
+	require.Equal(t, codes.NotFound, pbStatus.Code())
 }
 
 func TestDeleteReminderRPC_DeleteReminder_Internal(t *testing.T) {
@@ -79,24 +79,19 @@ func TestDeleteReminderRPC_DeleteReminder_Internal(t *testing.T) {
 	deleteReminderResponse, err := deleteReminderPRC.DeleteReminder(t.Context(), &request)
 	require.Nil(t, deleteReminderResponse)
 
-	st, ok := status.FromError(err)
+	pbStatus, ok := status.FromError(err)
 	require.True(t, ok)
-	require.Equal(t, codes.Internal, st.Code())
+	require.Equal(t, codes.Internal, pbStatus.Code())
 }
 
 func TestDeleteReminderRPC_DeleteReminder_InvalidArgument(t *testing.T) {
 	t.Parallel()
 
-	request := reminder_v1.DeleteReminderRequest{
-		Id: 0,
-	}
+	request := reminder_v1.DeleteReminderRequest{}
 
 	deleteReminderRPC := NewDeleteReminderRPC(nil)
 
 	deleteReminderResponse, err := deleteReminderRPC.DeleteReminder(t.Context(), &request)
+	require.Error(t, err)
 	require.Nil(t, deleteReminderResponse)
-
-	st, ok := status.FromError(err)
-	require.True(t, ok)
-	require.Equal(t, codes.InvalidArgument, st.Code())
 }

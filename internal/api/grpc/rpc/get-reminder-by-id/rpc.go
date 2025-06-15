@@ -40,11 +40,11 @@ func (x GetReminderByIDRPC) GetReminderByID(
 	}
 
 	return &reminder_v1.GetReminderByIDResponse{
-		Reminder: ToProtoReminder(reminder),
+		Reminder: NewReminderDTO(reminder),
 	}, nil
 }
 
-func ToProtoReminder(reminder reminder_aggregate.Reminder) *reminder_v1.Reminder {
+func NewReminderDTO(reminder reminder_aggregate.Reminder) *reminder_v1.Reminder {
 	return &reminder_v1.Reminder{
 		Id:          int64(reminder.GetID()),
 		Title:       string(reminder.GetTitle()),

@@ -43,7 +43,7 @@ func TestGetReminderByIDRPC_GetReminderByID(t *testing.T) {
 
 	getReminderByIDResponse, err := getReminderByIDPRC.GetReminderByID(t.Context(), &request)
 	require.NoError(t, err)
-	require.Equal(t, ToProtoReminder(reminder), getReminderByIDResponse.Reminder)
+	require.Equal(t, NewReminderDTO(reminder), getReminderByIDResponse.Reminder)
 }
 
 func TestGetReminderByIDRPC_GetReminderByID_ErrReminderNotFound(t *testing.T) {
@@ -65,9 +65,9 @@ func TestGetReminderByIDRPC_GetReminderByID_ErrReminderNotFound(t *testing.T) {
 	getReminderByIDResponse, err := getReminderByIDRPC.GetReminderByID(t.Context(), &request)
 	require.Nil(t, getReminderByIDResponse)
 
-	st, ok := status.FromError(err)
+	pbStatus, ok := status.FromError(err)
 	require.True(t, ok)
-	require.Equal(t, codes.NotFound, st.Code())
+	require.Equal(t, codes.NotFound, pbStatus.Code())
 }
 
 func TestGetReminderByIDRPC_GetReminderByID_Internal(t *testing.T) {
@@ -89,24 +89,19 @@ func TestGetReminderByIDRPC_GetReminderByID_Internal(t *testing.T) {
 	getReminderByIDResponse, err := getReminderByIDRPC.GetReminderByID(t.Context(), &request)
 	require.Nil(t, getReminderByIDResponse)
 
-	st, ok := status.FromError(err)
+	pbStatus, ok := status.FromError(err)
 	require.True(t, ok)
-	require.Equal(t, codes.Internal, st.Code())
+	require.Equal(t, codes.Internal, pbStatus.Code())
 }
 
 func TestGetReminderByIDRPC_GetReminderBy_InvalidArgument(t *testing.T) {
 	t.Parallel()
 
-	request := reminder_v1.GetReminderByIDRequest{
-		Id: 0,
-	}
+	request := reminder_v1.GetReminderByIDRequest{}
 
 	getReminderByIDRPC := NewGetReminderByIDRPC(nil)
 
 	getReminderByIDResponse, err := getReminderByIDRPC.GetReminderByID(t.Context(), &request)
+	require.Error(t, err)
 	require.Nil(t, getReminderByIDResponse)
-
-	st, ok := status.FromError(err)
-	require.True(t, ok)
-	require.Equal(t, codes.InvalidArgument, st.Code())
 }

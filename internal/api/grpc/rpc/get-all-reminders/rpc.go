@@ -32,11 +32,11 @@ func (x GetAllRemindersRPC) GetAllReminders(
 	}
 
 	return &reminder_v1.GetAllRemindersResponse{
-		Reminders: ToProtoReminders(reminders),
+		Reminders: NewReminderDTOs(reminders),
 	}, nil
 }
 
-func ToProtoReminders(reminders []reminder_aggregate.Reminder) []*reminder_v1.Reminder {
+func NewReminderDTOs(reminders []reminder_aggregate.Reminder) []*reminder_v1.Reminder {
 	pbReminders := make([]*reminder_v1.Reminder, len(reminders))
 	for i := range reminders {
 		pbReminders[i] = &reminder_v1.Reminder{

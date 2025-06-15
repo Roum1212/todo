@@ -23,7 +23,7 @@ func (x DeleteReminderRPC) DeleteReminder(
 ) (*emptypb.Empty, error) {
 	reminderID, err := reminder_id_model.NewReminderID(r.GetId())
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid reminderID: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid reminder id: %v", err)
 	}
 
 	if err = x.commandHandler.HandleCommand(
