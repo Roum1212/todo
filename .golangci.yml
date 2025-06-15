@@ -146,11 +146,11 @@ linters:
             - github.com/Masterminds/squirrel
             - github.com/rs/cors
             - go.opentelemetry.io/contrib/bridges/otelslog
+            - go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc
             - go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp
             - go.opentelemetry.io/otel
-            - google.golang.org/grpc
             - golang.org/x/sync/errgroup
-            - go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc
+            - google.golang.org/grpc
           files:
             - "!$test"
         main:
