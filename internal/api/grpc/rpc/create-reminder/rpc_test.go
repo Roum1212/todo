@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,7 +18,7 @@ import (
 	reminder_v1 "github.com/Roum1212/todo/pkg/gen/reminder/v1"
 )
 
-func TestCreateReminder(t *testing.T) {
+func TestCreateReminderRPC_CreateReminder(t *testing.T) {
 	t.Parallel()
 
 	request := reminder_v1.CreateReminderRequest{
@@ -48,7 +49,7 @@ func TestCreateReminder(t *testing.T) {
 	require.NotNil(t, createReminderResponse)
 }
 
-func TestCreateReminder_InvalidArgument(t *testing.T) {
+func TestCreateReminderRPC_CreateReminder_InvalidArgument(t *testing.T) {
 	t.Parallel()
 
 	t.Run("invalid title", func(t *testing.T) {
@@ -82,7 +83,7 @@ func TestCreateReminder_InvalidArgument(t *testing.T) {
 	})
 }
 
-func TestCreateReminder_Internal(t *testing.T) {
+func TestCreateReminderRPC_CreateReminder_Internal(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
@@ -104,7 +105,7 @@ func TestCreateReminder_Internal(t *testing.T) {
 			require.Equal(t, title, c.GetTitle())
 			require.Equal(t, description, c.GetDescription())
 		}).
-		Return(status.Errorf(codes.Internal, "internal error: %v", err))
+		Return(assert.AnError)
 
 	createReminderRPC := NewCreateReminderRPC(commandHandlerMock)
 
