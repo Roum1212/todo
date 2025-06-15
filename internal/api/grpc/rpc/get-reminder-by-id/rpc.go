@@ -23,7 +23,7 @@ func (x GetReminderByIDRPC) GetReminderByID(
 ) (*reminder_v1.GetReminderByIDResponse, error) {
 	reminderID, err := reminder_id_model.NewReminderID(r.GetId())
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid reminderID: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid reminder id: %v", err)
 	}
 
 	reminder, err := x.queryHandler.HandleQuery(

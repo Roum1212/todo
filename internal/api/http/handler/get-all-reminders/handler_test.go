@@ -24,17 +24,31 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	reminder1 := reminder_aggregate.NewReminder(
+	reminderTitleFirst, err := reminder_title_model.NewReminderTitle(rand.Text())
+	require.NoError(t, err)
+
+	reminderDescriptionFirst, err := reminder_description_model.NewReminderDescription(rand.Text())
+	require.NoError(t, err)
+
+	reminderFirst := reminder_aggregate.NewReminder(
 		reminder_id_model.GenerateReminderID(),
-		reminder_title_model.ReminderTitle(rand.Text()),
-		reminder_description_model.ReminderDescription(rand.Text()),
+		reminderTitleFirst,
+		reminderDescriptionFirst,
 	)
-	reminder2 := reminder_aggregate.NewReminder(
+
+	reminderTitleSecond, err := reminder_title_model.NewReminderTitle(rand.Text())
+	require.NoError(t, err)
+
+	reminderDescriptionSecond, err := reminder_description_model.NewReminderDescription(rand.Text())
+	require.NoError(t, err)
+
+	reminderSecond := reminder_aggregate.NewReminder(
 		reminder_id_model.GenerateReminderID(),
-		reminder_title_model.ReminderTitle(rand.Text()),
-		reminder_description_model.ReminderDescription(rand.Text()),
+		reminderTitleSecond,
+		reminderDescriptionSecond,
 	)
-	reminders := []reminder_aggregate.Reminder{reminder1, reminder2}
+
+	reminders := []reminder_aggregate.Reminder{reminderFirst, reminderSecond}
 
 	queryHandlerMock := get_all_reminders_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.

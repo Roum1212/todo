@@ -20,13 +20,15 @@ func TestDeleteReminderRPC_DeleteReminder(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
+	reminderID := reminder_id_model.GenerateReminderID()
+
 	request := reminder_v1.DeleteReminderRequest{
-		Id: int64(reminder_id_model.GenerateReminderID()),
+		Id: int64(reminderID),
 	}
 
 	commandHandlerMock := delete_reminder_command_mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
-		Expect(t.Context(), delete_reminder_command.NewCommand(reminder_id_model.ReminderID(request.Id))).
+		Expect(minimock.AnyContext, delete_reminder_command.NewCommand(reminderID)).
 		Return(nil)
 
 	deleteReminderPRC := NewDeleteReminderRPC(commandHandlerMock)
@@ -41,18 +43,21 @@ func TestDeleteReminderRPC_DeleteReminder_ErrReminderNotFound(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
+	reminderID := reminder_id_model.GenerateReminderID()
+
 	request := reminder_v1.DeleteReminderRequest{
-		Id: int64(reminder_id_model.GenerateReminderID()),
+		Id: int64(reminderID),
 	}
 
 	commandHandlerMock := delete_reminder_command_mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
-		Expect(t.Context(), delete_reminder_command.NewCommand(reminder_id_model.ReminderID(request.Id))).
+		Expect(minimock.AnyContext, delete_reminder_command.NewCommand(reminderID)).
 		Return(delete_reminder_command.ErrReminderNotFound)
 
 	deleteReminderPRC := NewDeleteReminderRPC(commandHandlerMock)
 
 	deleteReminderResponse, err := deleteReminderPRC.DeleteReminder(t.Context(), &request)
+	require.Error(t, err)
 	require.Nil(t, deleteReminderResponse)
 
 	pbStatus, ok := status.FromError(err)
@@ -65,18 +70,21 @@ func TestDeleteReminderRPC_DeleteReminder_Internal(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
+	reminderID := reminder_id_model.GenerateReminderID()
+
 	request := reminder_v1.DeleteReminderRequest{
-		Id: int64(reminder_id_model.GenerateReminderID()),
+		Id: int64(reminderID),
 	}
 
 	commandHandlerMock := delete_reminder_command_mock.NewCommandHandlerMock(mc).
 		HandleCommandMock.
-		Expect(t.Context(), delete_reminder_command.NewCommand(reminder_id_model.ReminderID(request.Id))).
+		Expect(minimock.AnyContext, delete_reminder_command.NewCommand(reminderID)).
 		Return(assert.AnError)
 
 	deleteReminderPRC := NewDeleteReminderRPC(commandHandlerMock)
 
 	deleteReminderResponse, err := deleteReminderPRC.DeleteReminder(t.Context(), &request)
+	require.Error(t, err)
 	require.Nil(t, deleteReminderResponse)
 
 	pbStatus, ok := status.FromError(err)

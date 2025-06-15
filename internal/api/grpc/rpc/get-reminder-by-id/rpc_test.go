@@ -24,26 +24,30 @@ func TestGetReminderByIDRPC_GetReminderByID(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
+	reminderID := reminder_id_model.GenerateReminderID()
+
 	request := reminder_v1.GetReminderByIDRequest{
-		Id: int64(reminder_id_model.GenerateReminderID()),
+		Id: int64(reminderID),
 	}
 
-	reminder := reminder_aggregate.NewReminder(
-		reminder_id_model.ReminderID(request.Id),
-		reminder_title_model.ReminderTitle(rand.Text()),
-		reminder_description_model.ReminderDescription(rand.Text()),
-	)
+	reminderTitle, err := reminder_title_model.NewReminderTitle(rand.Text())
+	require.NoError(t, err)
+
+	reminderDescription, err := reminder_description_model.NewReminderDescription(rand.Text())
+	require.NoError(t, err)
+
+	reminder := reminder_aggregate.NewReminder(reminderID, reminderTitle, reminderDescription)
 
 	handleQueryMock := get_reminder_by_id_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
-		Expect(t.Context(), get_reminder_by_id_query.NewQuery(reminder_id_model.ReminderID(request.Id))).
+		Expect(minimock.AnyContext, get_reminder_by_id_query.NewQuery(reminderID)).
 		Return(reminder, nil)
 
 	getReminderByIDPRC := NewGetReminderByIDRPC(handleQueryMock)
 
 	getReminderByIDResponse, err := getReminderByIDPRC.GetReminderByID(t.Context(), &request)
 	require.NoError(t, err)
-	require.Equal(t, NewReminderDTO(reminder), getReminderByIDResponse.Reminder)
+	require.Equal(t, NewReminderDTO(reminder), getReminderByIDResponse.GetReminder())
 }
 
 func TestGetReminderByIDRPC_GetReminderByID_ErrReminderNotFound(t *testing.T) {
@@ -51,18 +55,21 @@ func TestGetReminderByIDRPC_GetReminderByID_ErrReminderNotFound(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
+	reminderID := reminder_id_model.GenerateReminderID()
+
 	request := reminder_v1.GetReminderByIDRequest{
-		Id: int64(reminder_id_model.GenerateReminderID()),
+		Id: int64(reminderID),
 	}
 
 	handleQueryMock := get_reminder_by_id_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
-		Expect(t.Context(), get_reminder_by_id_query.NewQuery(reminder_id_model.ReminderID(request.Id))).
+		Expect(minimock.AnyContext, get_reminder_by_id_query.NewQuery(reminderID)).
 		Return(reminder_aggregate.Reminder{}, get_reminder_by_id_query.ErrReminderNotFound)
 
 	getReminderByIDRPC := NewGetReminderByIDRPC(handleQueryMock)
 
 	getReminderByIDResponse, err := getReminderByIDRPC.GetReminderByID(t.Context(), &request)
+	require.Error(t, err)
 	require.Nil(t, getReminderByIDResponse)
 
 	pbStatus, ok := status.FromError(err)
@@ -75,18 +82,21 @@ func TestGetReminderByIDRPC_GetReminderByID_Internal(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
+	reminderID := reminder_id_model.GenerateReminderID()
+
 	request := reminder_v1.GetReminderByIDRequest{
-		Id: int64(reminder_id_model.GenerateReminderID()),
+		Id: int64(reminderID),
 	}
 
 	handleQueryMock := get_reminder_by_id_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
-		Expect(t.Context(), get_reminder_by_id_query.NewQuery(reminder_id_model.ReminderID(request.Id))).
+		Expect(minimock.AnyContext, get_reminder_by_id_query.NewQuery(reminderID)).
 		Return(reminder_aggregate.Reminder{}, assert.AnError)
 
 	getReminderByIDRPC := NewGetReminderByIDRPC(handleQueryMock)
 
 	getReminderByIDResponse, err := getReminderByIDRPC.GetReminderByID(t.Context(), &request)
+	require.Error(t, err)
 	require.Nil(t, getReminderByIDResponse)
 
 	pbStatus, ok := status.FromError(err)

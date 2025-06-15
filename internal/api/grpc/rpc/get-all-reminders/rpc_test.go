@@ -24,30 +24,42 @@ func TestGetAllRemindersPRC_GetAllReminders(t *testing.T) {
 
 	mc := minimock.NewController(t)
 
-	reminder1 := reminder_aggregate.NewReminder(
+	reminderTitleFirst, err := reminder_title_model.NewReminderTitle(rand.Text())
+	require.NoError(t, err)
+
+	reminderDescriptionFirst, err := reminder_description_model.NewReminderDescription(rand.Text())
+	require.NoError(t, err)
+
+	reminderFirst := reminder_aggregate.NewReminder(
 		reminder_id_model.GenerateReminderID(),
-		reminder_title_model.ReminderTitle(rand.Text()),
-		reminder_description_model.ReminderDescription(rand.Text()),
+		reminderTitleFirst,
+		reminderDescriptionFirst,
 	)
 
-	reminder2 := reminder_aggregate.NewReminder(
+	reminderTitleSecond, err := reminder_title_model.NewReminderTitle(rand.Text())
+	require.NoError(t, err)
+
+	reminderDescriptionSecond, err := reminder_description_model.NewReminderDescription(rand.Text())
+	require.NoError(t, err)
+
+	reminderSecond := reminder_aggregate.NewReminder(
 		reminder_id_model.GenerateReminderID(),
-		reminder_title_model.ReminderTitle(rand.Text()),
-		reminder_description_model.ReminderDescription(rand.Text()),
+		reminderTitleSecond,
+		reminderDescriptionSecond,
 	)
 
-	reminders := []reminder_aggregate.Reminder{reminder1, reminder2}
+	reminders := []reminder_aggregate.Reminder{reminderFirst, reminderSecond}
 
 	handleQueryMock := get_all_reminders_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
-		Expect(t.Context()).
+		Expect(minimock.AnyContext).
 		Return(reminders, nil)
 
 	getAllRemindersRPC := NewGetAllRemindersRPC(handleQueryMock)
 
 	getAllRemindersResponse, err := getAllRemindersRPC.GetAllReminders(t.Context(), &emptypb.Empty{})
 	require.NoError(t, err)
-	require.Equal(t, NewReminderDTOs(reminders), getAllRemindersResponse.Reminders)
+	require.Equal(t, NewReminderDTOs(reminders), getAllRemindersResponse.GetReminders())
 }
 
 func TestGetAllRemindersRPC_GetAllReminders_ErrReminderNotFound(t *testing.T) {
@@ -57,12 +69,13 @@ func TestGetAllRemindersRPC_GetAllReminders_ErrReminderNotFound(t *testing.T) {
 
 	handleQueryMock := get_all_reminders_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
-		Expect(t.Context()).
+		Expect(minimock.AnyContext).
 		Return(nil, get_all_reminders_query.ErrReminderNotFound)
 
 	getAllRemindersRPC := NewGetAllRemindersRPC(handleQueryMock)
 
 	getAllRemindersResponse, err := getAllRemindersRPC.GetAllReminders(t.Context(), &emptypb.Empty{})
+	require.Error(t, err)
 	require.Nil(t, getAllRemindersResponse)
 
 	pbStatus, ok := status.FromError(err)
@@ -77,12 +90,13 @@ func TestGetAllRemindersRPC_GetAllReminders_Internal(t *testing.T) {
 
 	handleQueryMock := get_all_reminders_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
-		Expect(t.Context()).
+		Expect(minimock.AnyContext).
 		Return(nil, assert.AnError)
 
 	getAllRemindersRPC := NewGetAllRemindersRPC(handleQueryMock)
 
 	getAllRemindersResponse, err := getAllRemindersRPC.GetAllReminders(t.Context(), &emptypb.Empty{})
+	require.Error(t, err)
 	require.Nil(t, getAllRemindersResponse)
 
 	pbStatus, ok := status.FromError(err)

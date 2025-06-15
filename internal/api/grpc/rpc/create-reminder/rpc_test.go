@@ -110,6 +110,7 @@ func TestCreateReminderRPC_CreateReminder_Internal(t *testing.T) {
 	createReminderRPC := NewCreateReminderRPC(commandHandlerMock)
 
 	createReminderResponse, err := createReminderRPC.CreateReminder(t.Context(), &request)
+	require.Error(t, err)
 	require.Nil(t, createReminderResponse)
 
 	pbStatus, ok := status.FromError(err)
