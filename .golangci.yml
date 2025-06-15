@@ -151,6 +151,7 @@ linters:
             - go.opentelemetry.io/otel
             - golang.org/x/sync/errgroup
             - google.golang.org/grpc
+            - google.golang.org/protobuf/types/known/emptypb
           files:
             - "!$test"
         main:
@@ -246,6 +247,8 @@ linters:
             - github.com/gojuno/minimock/v3
             - github.com/stretchr/testify/assert
             - github.com/julienschmidt/httprouter
+            - google.golang.org/grpc
+            - google.golang.org/protobuf/types/known/emptypb
           files:
             - "$test"
 

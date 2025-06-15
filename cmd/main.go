@@ -19,6 +19,9 @@ import (
 	"google.golang.org/grpc"
 
 	create_reminder_rpc "github.com/Roum1212/todo/internal/api/grpc/rpc/create-reminder"
+	delete_reminder_rpc "github.com/Roum1212/todo/internal/api/grpc/rpc/delete-reminder"
+	get_all_reminders_rpc "github.com/Roum1212/todo/internal/api/grpc/rpc/get-all-reminders"
+	get_reminder_by_id_rpc "github.com/Roum1212/todo/internal/api/grpc/rpc/get-reminder-by-id"
 	grpc_server "github.com/Roum1212/todo/internal/api/grpc/server"
 	create_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/create-reminder"
 	delete_reminder_http_handler "github.com/Roum1212/todo/internal/api/http/handler/delete-reminder"
@@ -174,7 +177,12 @@ func main() { //nolint:gocognit,cyclop // OK.
 
 	reminder_v1.RegisterReminderServiceServer(
 		grpcServer,
-		grpc_server.NewCreateReminderService(create_reminder_rpc.NewCreateReminderRPC(createReminderCommand)),
+		grpc_server.NewCreateReminderService(
+			create_reminder_rpc.NewCreateReminderRPC(createReminderCommand),
+			delete_reminder_rpc.NewDeleteReminderRPC(deleteReminderCommand),
+			get_all_reminders_rpc.NewGetAllRemindersRPC(getAllRemindersQuery),
+			get_reminder_by_id_rpc.NewGetReminderByIDRPC(getReminderByIDQuery),
+		),
 	)
 
 	g, ctx := errgroup.WithContext(ctx)

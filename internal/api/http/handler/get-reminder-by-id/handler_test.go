@@ -28,11 +28,14 @@ func TestHandler_ServeHTTP_OK(t *testing.T) {
 	mc := minimock.NewController(t)
 
 	reminderID := reminder_id_model.GenerateReminderID()
-	reminder := reminder_aggregate.NewReminder(
-		reminderID,
-		reminder_title_model.ReminderTitle(rand.Text()),
-		reminder_description_model.ReminderDescription(rand.Text()),
-	)
+
+	reminderTitle, err := reminder_title_model.NewReminderTitle(rand.Text())
+	require.NoError(t, err)
+
+	reminderDescription, err := reminder_description_model.NewReminderDescription(rand.Text())
+	require.NoError(t, err)
+
+	reminder := reminder_aggregate.NewReminder(reminderID, reminderTitle, reminderDescription)
 
 	queryHandlerMock := get_reminder_by_id_query_mock.NewQueryHandlerMock(mc).
 		HandleQueryMock.
