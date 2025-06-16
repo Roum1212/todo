@@ -278,52 +278,52 @@ func (x redisRepository) GetReminderByID( //nolint:gocognit // OK.
 			Key(strconv.FormatInt(int64(reminderID), 10)).
 			Build(),
 	).ToString()
-	if err == nil { //nolint:nestif // OK.
-		var pbReminder reminder_v1.Reminder
+	if err != nil { //nolint:nestif // OK.
+		switch {
+		case rueidis.IsRedisNil(err):
+			reminder, getReminderError := x.repository.GetReminderByID(ctx, reminderID)
+			if getReminderError != nil {
+				return reminder_aggregate.Reminder{}, getReminderError
+			}
 
-		if unmarshalError := proto.Unmarshal([]byte(val), &pbReminder); unmarshalError != nil {
+			pbReminder := NewProtoReminder(reminder)
+
+			data, marshalError := proto.Marshal(pbReminder)
+			if marshalError != nil {
+				return reminder_aggregate.Reminder{},
+					fmt.Errorf("failed to marshal proto: %w", marshalError)
+			}
+
+			err = x.client.Do(
+				ctx,
+				x.client.B().Set().
+					Key(strconv.FormatInt(int64(reminderID), 10)).
+					Value(string(data)).
+					Build(),
+			).Error()
+			if err != nil {
+				return reminder_aggregate.Reminder{},
+					fmt.Errorf("failed to set reminder in redis: %w", err)
+			}
+		default:
 			return reminder_aggregate.Reminder{},
-				fmt.Errorf("failed to unmarshal reminder: %w", unmarshalError)
+				fmt.Errorf("failed to get reminder from redis: %w", err)
 		}
-
-		reminder, createReminderError := ToReminderFromProto(&pbReminder)
-		if createReminderError != nil {
-			return reminder_aggregate.Reminder{},
-				fmt.Errorf("failed to create reminder: %w", createReminderError)
-		}
-
-		return reminder, nil
-	} else if rueidis.IsRedisNil(err) {
-		reminder, getReminderError := x.repository.GetReminderByID(ctx, reminderID)
-		if getReminderError != nil {
-			return reminder_aggregate.Reminder{}, getReminderError
-		}
-
-		pbReminder := NewProtoReminder(reminder)
-
-		data, marshalError := proto.Marshal(pbReminder)
-		if marshalError != nil {
-			return reminder_aggregate.Reminder{},
-				fmt.Errorf("failed to marshal proto: %w", marshalError)
-		}
-
-		err = x.client.Do(
-			ctx,
-			x.client.B().Set().
-				Key(strconv.FormatInt(int64(reminderID), 10)).
-				Value(string(data)).
-				Build(),
-		).Error()
-		if err != nil {
-			return reminder_aggregate.Reminder{},
-				fmt.Errorf("failed to set reminder in redis: %w", err)
-		}
-
-		return reminder, nil
-	} else {
-		return reminder_aggregate.Reminder{},
-			fmt.Errorf("failed to get reminder from redis: %w", err)
 	}
+
+	var pbReminder reminder_v1.Reminder
+	if unmarshalError := proto.Unmarshal([]byte(val), &pbReminder); unmarshalError != nil {
+		return reminder_aggregate.Reminder{},
+			fmt.Errorf("failed to unmarshal reminder: %w", unmarshalError)
+	}
+
+	reminder, createReminderError := ToReminderFromProto(&pbReminder)
+	if createReminderError != nil {
+		return reminder_aggregate.Reminder{},
+			fmt.Errorf("failed to create reminder: %w", createReminderError)
+	}
+
+	return reminder, nil
 }
 
 func NewRepositoryWithRedis(
