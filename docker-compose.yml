@@ -6,11 +6,13 @@ services:
       - "50051:50051"
     depends_on:
       - postgresql
+      - redis
     environment:
       GRPC_SERVER_ADDRESS: ${GRPC_SERVER_ADDRESS}
       HTTP_SERVER_ADDRESS: ${HTTP_SERVER_ADDRESS}
       OPENTELEMETRY_ADDRESS: ${OPENTELEMETRY_ADDRESS}
       POSTGRESQL_DSN: ${POSTGRESQL_DSN}
+      REDIS_ADDR: ${REDIS_ADDR}
     volumes:
       - ./migrations/postgresql:/migrations
 
@@ -86,6 +88,8 @@ services:
 
   postgresql:
     image: postgres:16-alpine
+    ports:
+      - "7324:5432"
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -106,6 +110,18 @@ services:
         condition: service_healthy
     volumes:
       - "./migrations/postgresql:/migrations"
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "$${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis_data:/data
 
   prometheus:
     image: prom/prometheus:latest

@@ -10,6 +10,7 @@ import (
 	"github.com/caarlos0/env/v11"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/julienschmidt/httprouter"
+	"github.com/redis/rueidis"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -41,10 +42,13 @@ type Config struct {
 	HTTPServer    ServerConfig `envPrefix:"HTTP_SERVER_"`
 	OpenTelemetry ServerConfig `envPrefix:"OPENTELEMETRY_"`
 	PostgreSQL    DBConfig     `envPrefix:"POSTGRESQL_"`
+	Redis         DBConfig     `envPrefix:"REDIS_"`
 }
 
 type DBConfig struct {
-	DSN string `env:"DSN"`
+	ADDR     string `env:"ADDR"`
+	DSN      string `env:"DSN"`
+	PASSWORD string `env:"PASSWORD"`
 }
 
 type ServerConfig struct {
@@ -127,8 +131,20 @@ func main() { //nolint:gocognit,cyclop // OK.
 		return
 	}
 
+	client, err := rueidis.NewClient(
+		rueidis.ClientOption{
+			InitAddress: []string{cfg.Redis.ADDR},
+			SelectDB:    0,
+		})
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to create redis client", slog.Any("error", err))
+
+		return
+	}
+
 	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
 	reminderRepository = postgresql_reminder_repository.NewRepositoryWithTracing(reminderRepository)
+	reminderRepository = postgresql_reminder_repository.NewRepositoryWithRedis(reminderRepository, client)
 
 	createReminderCommand := create_reminder_command.NewCommandHandler(reminderRepository)
 	createReminderCommand = create_reminder_command.NewCommandHandlerWithTracing(createReminderCommand)

@@ -4,17 +4,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"strconv"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/rueidis"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/protobuf/proto"
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
+	reminder_v1 "github.com/Roum1212/todo/pkg/gen/reminder/v1"
 )
 
 const table = "reminders"
@@ -148,7 +153,10 @@ type tracerRepository struct {
 	tracer     trace.Tracer
 }
 
-func (x tracerRepository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
+func (x tracerRepository) SaveReminder(
+	ctx context.Context,
+	reminder reminder_aggregate.Reminder,
+) error {
 	_, span := x.tracer.Start(ctx, "ReminderRepository.SaveReminder")
 	defer span.End()
 
@@ -162,7 +170,10 @@ func (x tracerRepository) SaveReminder(ctx context.Context, reminder reminder_ag
 	return nil
 }
 
-func (x tracerRepository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
+func (x tracerRepository) DeleteReminder(
+	ctx context.Context,
+	reminderID reminder_id_model.ReminderID,
+) error {
 	_, span := x.tracer.Start(ctx, "ReminderRepository.DeleteReminder")
 	defer span.End()
 
@@ -176,7 +187,9 @@ func (x tracerRepository) DeleteReminder(ctx context.Context, reminderID reminde
 	return nil
 }
 
-func (x tracerRepository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
+func (x tracerRepository) GetAllReminders(
+	ctx context.Context,
+) ([]reminder_aggregate.Reminder, error) {
 	_, span := x.tracer.Start(ctx, "ReminderRepository.GetAllReminders")
 	defer span.End()
 
@@ -209,9 +222,118 @@ func (x tracerRepository) GetReminderByID(
 	return reminder, nil
 }
 
-func NewRepositoryWithTracing(repository reminder_aggregate.ReminderRepository) reminder_aggregate.ReminderRepository {
+func NewRepositoryWithTracing(
+	repository reminder_aggregate.ReminderRepository,
+) reminder_aggregate.ReminderRepository {
 	return tracerRepository{
 		repository: repository,
 		tracer:     otel.Tracer(tracerName),
+	}
+}
+
+type redisRepository struct {
+	repository reminder_aggregate.ReminderRepository
+	client     rueidis.Client
+}
+
+func (x redisRepository) SaveReminder(
+	ctx context.Context,
+	reminder reminder_aggregate.Reminder,
+) error {
+	if err := x.repository.SaveReminder(ctx, reminder); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (x redisRepository) DeleteReminder(
+	ctx context.Context,
+	reminderID reminder_id_model.ReminderID,
+) error {
+	if err := x.repository.DeleteReminder(ctx, reminderID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (x redisRepository) GetAllReminders(
+	ctx context.Context,
+) ([]reminder_aggregate.Reminder, error) {
+	reminders, err := x.repository.GetAllReminders(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return reminders, nil
+}
+
+func (x redisRepository) GetReminderByID( //nolint:gocognit // OK.
+	ctx context.Context,
+	reminderID reminder_id_model.ReminderID,
+) (reminder_aggregate.Reminder, error) {
+	val, err := x.client.Do(
+		ctx,
+		x.client.B().Get().
+			Key(strconv.FormatInt(int64(reminderID), 10)).
+			Build(),
+	).ToString()
+	if err == nil { //nolint:nestif // OK.
+		slog.InfoContext(ctx, "err == nil")
+		var pbReminder reminder_v1.Reminder
+		if unmarshalError := proto.Unmarshal([]byte(val), &pbReminder); unmarshalError != nil {
+			return reminder_aggregate.Reminder{},
+				fmt.Errorf("failed to unmarshal reminder: %w", unmarshalError)
+		}
+
+		reminder, createReminderError := ToReminderFromProto(&pbReminder)
+		if createReminderError != nil {
+			return reminder_aggregate.Reminder{},
+				fmt.Errorf("failed to create reminder: %w", createReminderError)
+		}
+
+		return reminder, nil
+	} else if rueidis.IsRedisNil(err) {
+		slog.InfoContext(ctx, "err == rueidis.IsRedisNil(err) ")
+		reminder, getReminderError := x.repository.GetReminderByID(ctx, reminderID)
+		if getReminderError != nil {
+			return reminder_aggregate.Reminder{}, getReminderError
+		}
+
+		pbReminder := NewProtoReminder(reminder)
+
+		data, marshalError := proto.Marshal(pbReminder)
+		if marshalError != nil {
+			return reminder_aggregate.Reminder{},
+				fmt.Errorf("failed to marshal proto: %w", marshalError)
+		}
+
+		err = x.client.Do(
+			ctx,
+			x.client.B().Set().
+				Key(strconv.FormatInt(int64(reminderID), 10)).
+				Value(string(data)).
+				Build(),
+		).Error()
+		if err != nil {
+			return reminder_aggregate.Reminder{},
+				fmt.Errorf("failed to set reminder in redis: %w", err)
+		}
+
+		return reminder, nil
+	} else {
+		return reminder_aggregate.Reminder{},
+			fmt.Errorf("failed to get reminder from redis: %w", err)
+	}
+}
+
+func NewRepositoryWithRedis(
+	repository reminder_aggregate.ReminderRepository,
+	client rueidis.Client,
+) reminder_aggregate.ReminderRepository {
+	return redisRepository{
+		repository: repository,
+		client:     client,
 	}
 }
