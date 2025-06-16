@@ -2,6 +2,7 @@ package redis_reminder_repository
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"strconv"
 
@@ -13,32 +14,40 @@ import (
 	reminder_v1 "github.com/Roum1212/todo/pkg/gen/reminder/v1"
 )
 
-type redisRepository struct {
-	repository reminder_aggregate.ReminderRepository
-	client     rueidis.Client
+const keyPrefix = "reminder:"
+
+type Repository struct {
+	client rueidis.Client
 }
 
-func (x redisRepository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
-	if err := x.repository.SaveReminder(ctx, reminder); err != nil {
-		return err
+func (x Repository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
+	reminderDTO := NewReminderDTO(reminder)
+
+	data, err := proto.Marshal(reminderDTO)
+	if err != nil {
+		return fmt.Errorf("failed to marshal reminder: %w", err)
 	}
 
-	if _, err := x.cacheAndGetReminder(ctx, reminder.GetID()); err != nil {
-		return err
+	encode := base64.StdEncoding.EncodeToString(data)
+
+	if err = x.client.Do(
+		ctx,
+		x.client.B().Set().Key(
+			NewKey(reminder.GetID())).
+			Value(encode).
+			Build(),
+	).Error(); err != nil {
+		return fmt.Errorf("failed to save reminder: %w", err)
 	}
 
 	return nil
 }
 
-func (x redisRepository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
-	if err := x.repository.DeleteReminder(ctx, reminderID); err != nil {
-		return err
-	}
-
+func (x Repository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
 	if err := x.client.Do(
 		ctx,
 		x.client.B().Del().
-			Key(buildReminderKey(reminderID)).
+			Key(NewKey(reminderID)).
 			Build(),
 	).Error(); err != nil {
 		return fmt.Errorf("failed to delete reminder: %w", err)
@@ -47,31 +56,26 @@ func (x redisRepository) DeleteReminder(ctx context.Context, reminderID reminder
 	return nil
 }
 
-func (x redisRepository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
-	return x.repository.GetAllReminders(ctx)
-}
-
-func (x redisRepository) GetReminderByID(
-	ctx context.Context,
-	reminderID reminder_id_model.ReminderID,
+func (x Repository) GetReminderByID(
+	ctx context.Context, reminderID reminder_id_model.ReminderID,
 ) (reminder_aggregate.Reminder, error) {
 	v, err := x.client.Do(
 		ctx,
 		x.client.B().Get().
-			Key(buildReminderKey(reminderID)).
+			Key(NewKey(reminderID)).
 			Build(),
 	).ToString()
 	if err != nil {
-		switch {
-		case rueidis.IsRedisNil(err):
-			return x.cacheAndGetReminder(ctx, reminderID)
-		default:
-			return reminder_aggregate.Reminder{}, fmt.Errorf("failed to get reminder: %w", err)
-		}
+		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to get reminder: %w", err)
+	}
+
+	decode, err := base64.StdEncoding.DecodeString(v)
+	if err != nil {
+		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to decode reminder: %w", err)
 	}
 
 	var reminderDTO reminder_v1.Reminder
-	if err = proto.Unmarshal([]byte(v), &reminderDTO); err != nil {
+	if err = proto.Unmarshal(decode, &reminderDTO); err != nil {
 		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to unmarshal reminder: %w", err)
 	}
 
@@ -83,45 +87,16 @@ func (x redisRepository) GetReminderByID(
 	return reminder, nil
 }
 
-func (x redisRepository) cacheAndGetReminder(
-	ctx context.Context,
-	reminderID reminder_id_model.ReminderID,
-) (reminder_aggregate.Reminder, error) {
-	reminder, err := x.repository.GetReminderByID(ctx, reminderID)
-	if err != nil {
-		return reminder_aggregate.Reminder{}, err
-	}
-
-	reminderDTO := NewReminderDTO(reminder)
-
-	data, err := proto.Marshal(reminderDTO)
-	if err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to marshal proto: %w", err)
-	}
-
-	if err = x.client.Do(
-		ctx,
-		x.client.B().Set().
-			Key(buildReminderKey(reminderID)).
-			Value(string(data)).
-			Build(),
-	).Error(); err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to save reminder: %w", err)
-	}
-
-	return reminder, nil
+func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
+	return nil, nil
 }
 
-func buildReminderKey(reminderID reminder_id_model.ReminderID) string {
-	return strconv.FormatInt(int64(reminderID), 10)
+func NewKey(reminderID reminder_id_model.ReminderID) string {
+	return keyPrefix + strconv.FormatInt(int64(reminderID), 10)
 }
 
-func NewRepositoryWithRedis(
-	repository reminder_aggregate.ReminderRepository,
-	client rueidis.Client,
-) reminder_aggregate.ReminderRepository {
-	return redisRepository{
-		repository: repository,
-		client:     client,
+func NewRepository(client rueidis.Client) reminder_aggregate.ReminderRepository {
+	return Repository{
+		client: client,
 	}
 }
