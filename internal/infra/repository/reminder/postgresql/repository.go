@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"strconv"
 
 	"github.com/Masterminds/squirrel"
@@ -280,8 +279,8 @@ func (x redisRepository) GetReminderByID( //nolint:gocognit // OK.
 			Build(),
 	).ToString()
 	if err == nil { //nolint:nestif // OK.
-		slog.InfoContext(ctx, "err == nil")
 		var pbReminder reminder_v1.Reminder
+
 		if unmarshalError := proto.Unmarshal([]byte(val), &pbReminder); unmarshalError != nil {
 			return reminder_aggregate.Reminder{},
 				fmt.Errorf("failed to unmarshal reminder: %w", unmarshalError)
@@ -295,7 +294,6 @@ func (x redisRepository) GetReminderByID( //nolint:gocognit // OK.
 
 		return reminder, nil
 	} else if rueidis.IsRedisNil(err) {
-		slog.InfoContext(ctx, "err == rueidis.IsRedisNil(err) ")
 		reminder, getReminderError := x.repository.GetReminderByID(ctx, reminderID)
 		if getReminderError != nil {
 			return reminder_aggregate.Reminder{}, getReminderError
