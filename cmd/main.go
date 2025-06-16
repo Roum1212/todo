@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/caarlos0/env/v11"
@@ -33,6 +34,7 @@ import (
 	get_all_reminders_query "github.com/Roum1212/todo/internal/app/query/get-all-reminders"
 	get_reminder_by_id_query "github.com/Roum1212/todo/internal/app/query/get-reminder-by-id"
 	postgresql_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/postgresql"
+	redis_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/redis"
 	opentelemetry "github.com/Roum1212/todo/internal/pkg/opentelementry"
 	reminder_v1 "github.com/Roum1212/todo/pkg/gen/reminder/v1"
 )
@@ -46,9 +48,7 @@ type Config struct {
 }
 
 type DBConfig struct {
-	ADDR     string `env:"ADDR"`
-	DSN      string `env:"DSN"`
-	PASSWORD string `env:"PASSWORD"`
+	DSN string `env:"DSN"`
 }
 
 type ServerConfig struct {
@@ -131,9 +131,16 @@ func main() { //nolint:gocognit,cyclop // OK.
 		return
 	}
 
-	client, err := rueidis.NewClient(
+	redisURL, err := url.Parse(cfg.Redis.DSN)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to parse redis dsn", slog.Any("error", err))
+
+		return
+	}
+
+	redisClient, err := rueidis.NewClient(
 		rueidis.ClientOption{
-			InitAddress: []string{cfg.Redis.ADDR},
+			InitAddress: []string{redisURL.Host},
 			SelectDB:    0,
 		})
 	if err != nil {
@@ -143,8 +150,8 @@ func main() { //nolint:gocognit,cyclop // OK.
 	}
 
 	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
+	reminderRepository = redis_reminder_repository.NewRepositoryWithRedis(reminderRepository, redisClient)
 	reminderRepository = postgresql_reminder_repository.NewRepositoryWithTracing(reminderRepository)
-	reminderRepository = postgresql_reminder_repository.NewRepositoryWithRedis(reminderRepository, client)
 
 	createReminderCommand := create_reminder_command.NewCommandHandler(reminderRepository)
 	createReminderCommand = create_reminder_command.NewCommandHandlerWithTracing(createReminderCommand)
