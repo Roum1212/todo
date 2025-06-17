@@ -29,6 +29,21 @@ func ToReminder(reminderDTO *reminder_v1.Reminder) (reminder_aggregate.Reminder,
 	return reminder_aggregate.NewReminder(id, title, description), nil
 }
 
+func ToReminders(reminderDTOs ...*reminder_v1.Reminder) ([]reminder_aggregate.Reminder, error) {
+	reminders := make([]reminder_aggregate.Reminder, len(reminderDTOs))
+
+	for i := range reminderDTOs {
+		reminder, err := ToReminder(reminderDTOs[i])
+		if err != nil {
+			return nil, fmt.Errorf("failed to create reminder: %w", err)
+		}
+
+		reminders[i] = reminder
+	}
+
+	return reminders, nil
+}
+
 func NewReminderDTO(reminder reminder_aggregate.Reminder) *reminder_v1.Reminder {
 	return &reminder_v1.Reminder{
 		Id:          int64(reminder.GetID()),

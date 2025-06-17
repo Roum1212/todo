@@ -30,7 +30,7 @@ const (
 	fieldDescription = "description"
 )
 
-const tracerName = "github.com/Roum1212/todo/internal/postgresql/reminder/repository"
+const tracerName = "github.com/Roum1212/todo/internal/postgresql/reminder/repository/postgresql"
 
 type Repository struct {
 	client *pgxpool.Pool
@@ -323,7 +323,7 @@ func (x redisRepository) cacheAndGetReminder(
 	return reminder, nil
 }
 
-func NewRepositoryWithRedis(
+func NewPostgresRepositoryWithRedis(
 	repository reminder_aggregate.ReminderRepository,
 	client rueidis.Client,
 ) reminder_aggregate.ReminderRepository {
