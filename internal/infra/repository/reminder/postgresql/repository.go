@@ -220,6 +220,7 @@ func NewRepositoryWithTracing(repository reminder_aggregate.ReminderRepository) 
 
 type redisRepository struct {
 	repository reminder_aggregate.ReminderRepository
+	cache      reminder_aggregate.ReminderRepository
 	client     rueidis.Client
 }
 
@@ -228,7 +229,7 @@ func (x redisRepository) SaveReminder(ctx context.Context, reminder reminder_agg
 		return err
 	}
 
-	if _, err := x.cacheAndGetReminder(ctx, reminder.GetID()); err != nil {
+	if err := x.cache.SaveReminder(ctx, reminder); err != nil {
 		return err
 	}
 
@@ -236,13 +237,8 @@ func (x redisRepository) SaveReminder(ctx context.Context, reminder reminder_agg
 }
 
 func (x redisRepository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
-	if err := x.client.Do(
-		ctx,
-		x.client.B().Del().
-			Key(redis_reminder_repository.NewKey(reminderID)).
-			Build(),
-	).Error(); err != nil {
-		return fmt.Errorf("failed to delete reminder: %w", err)
+	if err := x.cache.DeleteReminder(ctx, reminderID); err != nil {
+		return err
 	}
 
 	if err := x.repository.DeleteReminder(ctx, reminderID); err != nil {
@@ -324,11 +320,12 @@ func (x redisRepository) cacheAndGetReminder(
 }
 
 func NewPostgresRepositoryWithRedis(
-	repository reminder_aggregate.ReminderRepository,
+	repository, cache reminder_aggregate.ReminderRepository,
 	client rueidis.Client,
 ) reminder_aggregate.ReminderRepository {
 	return redisRepository{
 		repository: repository,
+		cache:      cache,
 		client:     client,
 	}
 }

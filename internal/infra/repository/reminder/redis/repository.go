@@ -7,9 +7,6 @@ import (
 	"strconv"
 
 	"github.com/redis/rueidis"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/proto"
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
@@ -20,8 +17,6 @@ import (
 const cursorCount = 100
 
 const keyPrefix = "reminder:"
-
-const tracerName = "github.com/Roum1212/todo/internal/infra/repository/reminder/redis"
 
 type Repository struct {
 	client rueidis.Client
@@ -167,80 +162,5 @@ func NewKey(reminderID reminder_id_model.ReminderID) string {
 func NewRepository(client rueidis.Client) reminder_aggregate.ReminderRepository {
 	return Repository{
 		client: client,
-	}
-}
-
-type tracerRepository struct {
-	repository reminder_aggregate.ReminderRepository
-	tracer     trace.Tracer
-}
-
-func (x tracerRepository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
-	_, span := x.tracer.Start(ctx, "ReminderRepository.SaveReminder")
-	defer span.End()
-
-	if err := x.repository.SaveReminder(ctx, reminder); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		return err
-	}
-
-	return nil
-}
-
-func (x tracerRepository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
-	_, span := x.tracer.Start(ctx, "ReminderRepository.DeleteReminder")
-	defer span.End()
-
-	if err := x.repository.DeleteReminder(ctx, reminderID); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		return err
-	}
-
-	return nil
-}
-
-func (x tracerRepository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
-	_, span := x.tracer.Start(ctx, "ReminderRepository.GetAllReminders")
-	defer span.End()
-
-	reminders, err := x.repository.GetAllReminders(ctx)
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		return nil, err
-	}
-
-	return reminders, nil
-}
-
-func (x tracerRepository) GetReminderByID(
-	ctx context.Context,
-	reminderID reminder_id_model.ReminderID,
-) (reminder_aggregate.Reminder, error) {
-	_, span := x.tracer.Start(ctx, "ReminderRepository.GetReminderByID")
-	defer span.End()
-
-	reminder, err := x.repository.GetReminderByID(ctx, reminderID)
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		return reminder_aggregate.Reminder{}, err
-	}
-
-	return reminder, nil
-}
-
-func NewRedisRepositoryWithTracing(
-	repository reminder_aggregate.ReminderRepository,
-) reminder_aggregate.ReminderRepository {
-	return tracerRepository{
-		repository: repository,
-		tracer:     otel.Tracer(tracerName),
 	}
 }
