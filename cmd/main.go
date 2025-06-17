@@ -33,7 +33,6 @@ import (
 	get_all_reminders_query "github.com/Roum1212/todo/internal/app/query/get-all-reminders"
 	get_reminder_by_id_query "github.com/Roum1212/todo/internal/app/query/get-reminder-by-id"
 	postgresql_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/postgresql"
-	redis_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/redis"
 	opentelemetry "github.com/Roum1212/todo/internal/pkg/opentelementry"
 	reminder_v1 "github.com/Roum1212/todo/pkg/gen/reminder/v1"
 )
@@ -144,10 +143,10 @@ func main() { //nolint:gocognit,cyclop // OK.
 		return
 	}
 
-	reminderRedisRepository := redis_reminder_repository.NewRepository(redisClient)
+	// reminderRedisRepository := redis_reminder_repository.NewRepository(redisClient).
 
 	reminderPostgresRepository := postgresql_reminder_repository.NewRepository(pool)
-	reminderPostgresRepository = postgresql_reminder_repository.NewRepositoryWithRedis(reminderRedisRepository, redisClient)
+	reminderPostgresRepository = postgresql_reminder_repository.NewRepositoryWithRedis(reminderPostgresRepository, redisClient)
 	reminderPostgresRepository = postgresql_reminder_repository.NewRepositoryWithTracing(reminderPostgresRepository)
 
 	createReminderCommand := create_reminder_command.NewCommandHandler(reminderPostgresRepository)
