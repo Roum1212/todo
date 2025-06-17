@@ -236,10 +236,6 @@ func (x redisRepository) SaveReminder(ctx context.Context, reminder reminder_agg
 }
 
 func (x redisRepository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
-	if err := x.repository.DeleteReminder(ctx, reminderID); err != nil {
-		return err
-	}
-
 	if err := x.client.Do(
 		ctx,
 		x.client.B().Del().
@@ -247,6 +243,10 @@ func (x redisRepository) DeleteReminder(ctx context.Context, reminderID reminder
 			Build(),
 	).Error(); err != nil {
 		return fmt.Errorf("failed to delete reminder: %w", err)
+	}
+
+	if err := x.repository.DeleteReminder(ctx, reminderID); err != nil {
+		return err
 	}
 
 	return nil
