@@ -56,7 +56,7 @@ func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.R
 
 		var reminder reminder_aggregate.Reminder
 		for _, key := range keys {
-			reminder, err = x.getReminderFromCache(ctx, key)
+			reminder, err = x.getReminderFromRedis(ctx, key)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get reminder: %w", err)
 			}
@@ -82,7 +82,12 @@ func (x Repository) GetReminderByID(
 			Build(),
 	).ToString()
 	if err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to get reminder: %w", err)
+		switch {
+		case rueidis.IsRedisNil(err):
+			return reminder_aggregate.Reminder{}, reminder_aggregate.ErrReminderNotFound
+		default:
+			return reminder_aggregate.Reminder{}, fmt.Errorf("failed to get reminder: %w", err)
+		}
 	}
 
 	decode, err := base64.StdEncoding.DecodeString(v)
@@ -126,7 +131,7 @@ func (x Repository) SaveReminder(ctx context.Context, reminder reminder_aggregat
 	return nil
 }
 
-func (x Repository) getReminderFromCache(ctx context.Context, key string) (reminder_aggregate.Reminder, error) {
+func (x Repository) getReminderFromRedis(ctx context.Context, key string) (reminder_aggregate.Reminder, error) {
 	v, err := x.client.Do(
 		ctx,
 		x.client.B().Get().
@@ -155,12 +160,12 @@ func (x Repository) getReminderFromCache(ctx context.Context, key string) (remin
 	return reminder, nil
 }
 
-func newKey(reminderID reminder_id_model.ReminderID) string {
-	return keyPrefix + strconv.FormatInt(int64(reminderID), 10)
-}
-
 func NewRepository(client rueidis.Client) reminder_aggregate.ReminderRepository {
 	return Repository{
 		client: client,
 	}
+}
+
+func newKey(reminderID reminder_id_model.ReminderID) string {
+	return keyPrefix + strconv.FormatInt(int64(reminderID), 10)
 }

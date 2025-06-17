@@ -147,7 +147,7 @@ func main() { //nolint:gocognit,cyclop // OK.
 	redisReminderRepository := redis_reminder_repository.NewRepository(redisClient)
 
 	postgreSQLReminderRepository := postgresql_reminder_repository.NewRepository(pool)
-	postgreSQLReminderRepository = postgresql_reminder_repository.NewPostgresRepositoryWithRedis(
+	postgreSQLReminderRepository = postgresql_reminder_repository.NewPostgreSQLRepositoryWithCache(
 		postgreSQLReminderRepository,
 		redisReminderRepository,
 	)

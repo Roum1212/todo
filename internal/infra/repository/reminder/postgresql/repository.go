@@ -9,7 +9,6 @@ import (
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/redis/rueidis"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -214,12 +213,12 @@ func NewRepositoryWithTracing(repository reminder_aggregate.ReminderRepository) 
 	}
 }
 
-type redisRepository struct {
+type cacheRepository struct {
 	repository reminder_aggregate.ReminderRepository
 	cache      reminder_aggregate.ReminderRepository
 }
 
-func (x redisRepository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
+func (x cacheRepository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
 	if err := x.cache.DeleteReminder(ctx, reminderID); err != nil {
 		return err
 	}
@@ -231,7 +230,7 @@ func (x redisRepository) DeleteReminder(ctx context.Context, reminderID reminder
 	return nil
 }
 
-func (x redisRepository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
+func (x cacheRepository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
 	reminders, err := x.cache.GetAllReminders(ctx)
 	if err != nil {
 		return nil, err
@@ -247,14 +246,14 @@ func (x redisRepository) GetAllReminders(ctx context.Context) ([]reminder_aggreg
 	return reminders, nil
 }
 
-func (x redisRepository) GetReminderByID(
+func (x cacheRepository) GetReminderByID(
 	ctx context.Context,
 	reminderID reminder_id_model.ReminderID,
 ) (reminder_aggregate.Reminder, error) {
 	reminder, err := x.cache.GetReminderByID(ctx, reminderID)
 	if err != nil {
 		switch {
-		case rueidis.IsRedisNil(err):
+		case errors.Is(err, reminder_aggregate.ErrReminderNotFound):
 			return x.cacheAndGetReminder(ctx, reminderID)
 		default:
 			return reminder_aggregate.Reminder{}, fmt.Errorf("failed to get reminder: %w", err)
@@ -264,7 +263,7 @@ func (x redisRepository) GetReminderByID(
 	return reminder, nil
 }
 
-func (x redisRepository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
+func (x cacheRepository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
 	if err := x.repository.SaveReminder(ctx, reminder); err != nil {
 		return err
 	}
@@ -276,7 +275,7 @@ func (x redisRepository) SaveReminder(ctx context.Context, reminder reminder_agg
 	return nil
 }
 
-func (x redisRepository) cacheAndGetReminder(
+func (x cacheRepository) cacheAndGetReminder(
 	ctx context.Context,
 	reminderID reminder_id_model.ReminderID,
 ) (reminder_aggregate.Reminder, error) {
@@ -293,10 +292,10 @@ func (x redisRepository) cacheAndGetReminder(
 	return reminder, nil
 }
 
-func NewPostgresRepositoryWithRedis(
+func NewPostgreSQLRepositoryWithCache(
 	repository, cache reminder_aggregate.ReminderRepository,
 ) reminder_aggregate.ReminderRepository {
-	return redisRepository{
+	return cacheRepository{
 		repository: repository,
 		cache:      cache,
 	}
