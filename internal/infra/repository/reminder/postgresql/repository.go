@@ -2,7 +2,6 @@ package postgresql_reminder_repository
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -14,12 +13,9 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/protobuf/proto"
 
 	reminder_aggregate "github.com/Roum1212/todo/internal/domain/aggregate/reminder"
 	reminder_id_model "github.com/Roum1212/todo/internal/domain/model/reminder-id"
-	redis_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/redis"
-	reminder_v1 "github.com/Roum1212/todo/pkg/gen/reminder/v1"
 )
 
 const table = "reminders"
@@ -34,26 +30,6 @@ const tracerName = "github.com/Roum1212/todo/internal/postgresql/reminder/reposi
 
 type Repository struct {
 	client *pgxpool.Pool
-}
-
-func (x Repository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
-	reminderDTO := NewReminder(reminder)
-
-	sql, args, err := squirrel.
-		Insert(table).
-		Columns(fieldID, fieldTitle, fieldDescription).
-		Values(reminderDTO.ID, reminderDTO.Title, reminderDTO.Description).
-		PlaceholderFormat(squirrel.Dollar).
-		ToSql()
-	if err != nil {
-		return fmt.Errorf("failed to build sql: %w", err)
-	}
-
-	if _, err = x.client.Exec(ctx, sql, args...); err != nil {
-		return fmt.Errorf("failed to execute sql: %w", err)
-	}
-
-	return nil
 }
 
 func (x Repository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
@@ -76,6 +52,34 @@ func (x Repository) DeleteReminder(ctx context.Context, reminderID reminder_id_m
 	}
 
 	return nil
+}
+
+func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
+	var reminderDTOs []Reminder
+
+	sql, args, err := squirrel.
+		Select(fieldID, fieldTitle, fieldDescription).
+		From(table).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build sql: %w", err)
+	}
+
+	if err = pgxscan.Select(ctx, x.client, &reminderDTOs, sql, args...); err != nil {
+		return nil, fmt.Errorf("failed to query sql: %w", err)
+	}
+
+	if len(reminderDTOs) == 0 {
+		return nil, reminder_aggregate.ErrReminderNotFound
+	}
+
+	reminders, err := ToReminders(reminderDTOs...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create reminders: %w", err)
+	}
+
+	return reminders, nil
 }
 
 func (x Repository) GetReminderByID(
@@ -111,32 +115,24 @@ func (x Repository) GetReminderByID(
 	return reminder, nil
 }
 
-func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
-	var reminderDTOs []Reminder
+func (x Repository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
+	reminderDTO := NewReminder(reminder)
 
 	sql, args, err := squirrel.
-		Select(fieldID, fieldTitle, fieldDescription).
-		From(table).
+		Insert(table).
+		Columns(fieldID, fieldTitle, fieldDescription).
+		Values(reminderDTO.ID, reminderDTO.Title, reminderDTO.Description).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("failed to build sql: %w", err)
+		return fmt.Errorf("failed to build sql: %w", err)
 	}
 
-	if err = pgxscan.Select(ctx, x.client, &reminderDTOs, sql, args...); err != nil {
-		return nil, fmt.Errorf("failed to query sql: %w", err)
+	if _, err = x.client.Exec(ctx, sql, args...); err != nil {
+		return fmt.Errorf("failed to execute sql: %w", err)
 	}
 
-	if len(reminderDTOs) == 0 {
-		return nil, reminder_aggregate.ErrReminderNotFound
-	}
-
-	reminders, err := ToReminders(reminderDTOs...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create reminders: %w", err)
-	}
-
-	return reminders, nil
+	return nil
 }
 
 func NewRepository(client *pgxpool.Pool) reminder_aggregate.ReminderRepository {
@@ -148,20 +144,6 @@ func NewRepository(client *pgxpool.Pool) reminder_aggregate.ReminderRepository {
 type tracerRepository struct {
 	repository reminder_aggregate.ReminderRepository
 	tracer     trace.Tracer
-}
-
-func (x tracerRepository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
-	_, span := x.tracer.Start(ctx, "ReminderRepository.SaveReminder")
-	defer span.End()
-
-	if err := x.repository.SaveReminder(ctx, reminder); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		return err
-	}
-
-	return nil
 }
 
 func (x tracerRepository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
@@ -211,6 +193,20 @@ func (x tracerRepository) GetReminderByID(
 	return reminder, nil
 }
 
+func (x tracerRepository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
+	_, span := x.tracer.Start(ctx, "ReminderRepository.SaveReminder")
+	defer span.End()
+
+	if err := x.repository.SaveReminder(ctx, reminder); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+
+		return err
+	}
+
+	return nil
+}
+
 func NewRepositoryWithTracing(repository reminder_aggregate.ReminderRepository) reminder_aggregate.ReminderRepository {
 	return tracerRepository{
 		repository: repository,
@@ -221,19 +217,6 @@ func NewRepositoryWithTracing(repository reminder_aggregate.ReminderRepository) 
 type redisRepository struct {
 	repository reminder_aggregate.ReminderRepository
 	cache      reminder_aggregate.ReminderRepository
-	client     rueidis.Client
-}
-
-func (x redisRepository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
-	if err := x.repository.SaveReminder(ctx, reminder); err != nil {
-		return err
-	}
-
-	if err := x.cache.SaveReminder(ctx, reminder); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (x redisRepository) DeleteReminder(ctx context.Context, reminderID reminder_id_model.ReminderID) error {
@@ -249,19 +232,26 @@ func (x redisRepository) DeleteReminder(ctx context.Context, reminderID reminder
 }
 
 func (x redisRepository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
-	return x.repository.GetAllReminders(ctx)
+	reminders, err := x.cache.GetAllReminders(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(reminders) == 0 {
+		reminders, err = x.repository.GetAllReminders(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return reminders, nil
 }
 
 func (x redisRepository) GetReminderByID(
 	ctx context.Context,
 	reminderID reminder_id_model.ReminderID,
 ) (reminder_aggregate.Reminder, error) {
-	v, err := x.client.Do(
-		ctx,
-		x.client.B().Get().
-			Key(redis_reminder_repository.NewKey(reminderID)).
-			Build(),
-	).ToString()
+	reminder, err := x.cache.GetReminderByID(ctx, reminderID)
 	if err != nil {
 		switch {
 		case rueidis.IsRedisNil(err):
@@ -271,22 +261,19 @@ func (x redisRepository) GetReminderByID(
 		}
 	}
 
-	decode, err := base64.StdEncoding.DecodeString(v)
-	if err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to decode reminder: %w", err)
-	}
-
-	var reminderDTO reminder_v1.Reminder
-	if err = proto.Unmarshal(decode, &reminderDTO); err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to unmarshal reminder: %w", err)
-	}
-
-	reminder, err := redis_reminder_repository.ToReminder(&reminderDTO)
-	if err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to create reminder: %w", err)
-	}
-
 	return reminder, nil
+}
+
+func (x redisRepository) SaveReminder(ctx context.Context, reminder reminder_aggregate.Reminder) error {
+	if err := x.repository.SaveReminder(ctx, reminder); err != nil {
+		return err
+	}
+
+	if err := x.cache.SaveReminder(ctx, reminder); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (x redisRepository) cacheAndGetReminder(
@@ -298,22 +285,9 @@ func (x redisRepository) cacheAndGetReminder(
 		return reminder_aggregate.Reminder{}, err
 	}
 
-	reminderDTO := redis_reminder_repository.NewReminderDTO(reminder)
-
-	data, err := proto.Marshal(reminderDTO)
+	err = x.cache.SaveReminder(ctx, reminder)
 	if err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to marshal proto: %w", err)
-	}
-
-	encode := base64.StdEncoding.EncodeToString(data)
-	if err = x.client.Do(
-		ctx,
-		x.client.B().Set().
-			Key(redis_reminder_repository.NewKey(reminderID)).
-			Value(encode).
-			Build(),
-	).Error(); err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to save reminder: %w", err)
+		return reminder_aggregate.Reminder{}, err
 	}
 
 	return reminder, nil
@@ -321,11 +295,9 @@ func (x redisRepository) cacheAndGetReminder(
 
 func NewPostgresRepositoryWithRedis(
 	repository, cache reminder_aggregate.ReminderRepository,
-	client rueidis.Client,
 ) reminder_aggregate.ReminderRepository {
 	return redisRepository{
 		repository: repository,
 		cache:      cache,
-		client:     client,
 	}
 }

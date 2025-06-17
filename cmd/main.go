@@ -132,7 +132,7 @@ func main() { //nolint:gocognit,cyclop // OK.
 
 	redisURL, err := rueidis.ParseURL(cfg.Redis.DSN)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to parse redis address", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to parse redis dsn", slog.Any("error", err))
 
 		return
 	}
@@ -144,26 +144,25 @@ func main() { //nolint:gocognit,cyclop // OK.
 		return
 	}
 
-	reminderRedisRepository := redis_reminder_repository.NewRepository(redisClient)
+	redisReminderRepository := redis_reminder_repository.NewRepository(redisClient)
 
-	reminderPostgresRepository := postgresql_reminder_repository.NewRepository(pool)
-	reminderPostgresRepository = postgresql_reminder_repository.NewPostgresRepositoryWithRedis(
-		reminderPostgresRepository,
-		reminderRedisRepository,
-		redisClient,
+	postgreSQLReminderRepository := postgresql_reminder_repository.NewRepository(pool)
+	postgreSQLReminderRepository = postgresql_reminder_repository.NewPostgresRepositoryWithRedis(
+		postgreSQLReminderRepository,
+		redisReminderRepository,
 	)
-	reminderPostgresRepository = postgresql_reminder_repository.NewRepositoryWithTracing(reminderPostgresRepository)
+	postgreSQLReminderRepository = postgresql_reminder_repository.NewRepositoryWithTracing(postgreSQLReminderRepository)
 
-	createReminderCommand := create_reminder_command.NewCommandHandler(reminderPostgresRepository)
+	createReminderCommand := create_reminder_command.NewCommandHandler(postgreSQLReminderRepository)
 	createReminderCommand = create_reminder_command.NewCommandHandlerWithTracing(createReminderCommand)
 
-	deleteReminderCommand := delete_reminder_command.NewCommandHandler(reminderPostgresRepository)
+	deleteReminderCommand := delete_reminder_command.NewCommandHandler(postgreSQLReminderRepository)
 	deleteReminderCommand = delete_reminder_command.NewCommandHandlerTracer(deleteReminderCommand)
 
-	getAllRemindersQuery := get_all_reminders_query.NewQueryHandler(reminderPostgresRepository)
+	getAllRemindersQuery := get_all_reminders_query.NewQueryHandler(postgreSQLReminderRepository)
 	getAllRemindersQuery = get_all_reminders_query.NewQueryHandlerTracer(getAllRemindersQuery)
 
-	getReminderByIDQuery := get_reminder_by_id_query.NewQueryHandler(reminderPostgresRepository)
+	getReminderByIDQuery := get_reminder_by_id_query.NewQueryHandler(postgreSQLReminderRepository)
 	getReminderByIDQuery = get_reminder_by_id_query.NewQueryHandlerTracer(getReminderByIDQuery)
 
 	createReminderHTTPHandler := create_reminder_http_handler.NewHTTPHandler(createReminderCommand)
