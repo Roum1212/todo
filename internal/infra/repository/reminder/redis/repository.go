@@ -36,7 +36,7 @@ func (x Repository) DeleteReminder(ctx context.Context, reminderID reminder_id_m
 	return nil
 }
 
-func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) {
+func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.Reminder, error) { //nolint:gocognit // OK.
 	var reminders []reminder_aggregate.Reminder
 
 	var cursor uint64 = 0
@@ -56,6 +56,7 @@ func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.R
 		keys := scanRes.Elements
 
 		var reminder reminder_aggregate.Reminder
+
 		var reminderID reminder_id_model.ReminderID
 
 		for _, key := range keys {
