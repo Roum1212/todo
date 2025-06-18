@@ -144,6 +144,7 @@ linters:
             - github.com/jackc/pgx/v5
             - github.com/julienschmidt/httprouter
             - github.com/Masterminds/squirrel
+            - github.com/redis/rueidis
             - github.com/rs/cors
             - go.opentelemetry.io/contrib/bridges/otelslog
             - go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc
@@ -151,7 +152,7 @@ linters:
             - go.opentelemetry.io/otel
             - golang.org/x/sync/errgroup
             - google.golang.org/grpc
-            - google.golang.org/protobuf/types/known/emptypb
+            - google.golang.org/protobuf
           files:
             - "!$test"
         main:

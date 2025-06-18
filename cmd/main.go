@@ -10,6 +10,7 @@ import (
 	"github.com/caarlos0/env/v11"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/julienschmidt/httprouter"
+	"github.com/redis/rueidis"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -32,6 +33,7 @@ import (
 	get_all_reminders_query "github.com/Roum1212/todo/internal/app/query/get-all-reminders"
 	get_reminder_by_id_query "github.com/Roum1212/todo/internal/app/query/get-reminder-by-id"
 	postgresql_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/postgresql"
+	redis_reminder_repository "github.com/Roum1212/todo/internal/infra/repository/reminder/redis"
 	opentelemetry "github.com/Roum1212/todo/internal/pkg/opentelementry"
 	reminder_v1 "github.com/Roum1212/todo/pkg/gen/reminder/v1"
 )
@@ -41,6 +43,7 @@ type Config struct {
 	HTTPServer    ServerConfig `envPrefix:"HTTP_SERVER_"`
 	OpenTelemetry ServerConfig `envPrefix:"OPENTELEMETRY_"`
 	PostgreSQL    DBConfig     `envPrefix:"POSTGRESQL_"`
+	Redis         DBConfig     `envPrefix:"REDIS_"`
 }
 
 type DBConfig struct {
@@ -127,19 +130,39 @@ func main() { //nolint:gocognit,cyclop // OK.
 		return
 	}
 
-	reminderRepository := postgresql_reminder_repository.NewRepository(pool)
-	reminderRepository = postgresql_reminder_repository.NewRepositoryWithTracing(reminderRepository)
+	redisURL, err := rueidis.ParseURL(cfg.Redis.DSN)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to parse redis dsn", slog.Any("error", err))
 
-	createReminderCommand := create_reminder_command.NewCommandHandler(reminderRepository)
+		return
+	}
+
+	redisClient, err := rueidis.NewClient(redisURL)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to create redis client", slog.Any("error", err))
+
+		return
+	}
+
+	redisReminderRepository := redis_reminder_repository.NewRepository(redisClient)
+
+	postgreSQLReminderRepository := postgresql_reminder_repository.NewRepository(pool)
+	postgreSQLReminderRepository = postgresql_reminder_repository.NewPostgreSQLRepositoryWithCache(
+		postgreSQLReminderRepository,
+		redisReminderRepository,
+	)
+	postgreSQLReminderRepository = postgresql_reminder_repository.NewRepositoryWithTracing(postgreSQLReminderRepository)
+
+	createReminderCommand := create_reminder_command.NewCommandHandler(postgreSQLReminderRepository)
 	createReminderCommand = create_reminder_command.NewCommandHandlerWithTracing(createReminderCommand)
 
-	deleteReminderCommand := delete_reminder_command.NewCommandHandler(reminderRepository)
+	deleteReminderCommand := delete_reminder_command.NewCommandHandler(postgreSQLReminderRepository)
 	deleteReminderCommand = delete_reminder_command.NewCommandHandlerTracer(deleteReminderCommand)
 
-	getAllRemindersQuery := get_all_reminders_query.NewQueryHandler(reminderRepository)
+	getAllRemindersQuery := get_all_reminders_query.NewQueryHandler(postgreSQLReminderRepository)
 	getAllRemindersQuery = get_all_reminders_query.NewQueryHandlerTracer(getAllRemindersQuery)
 
-	getReminderByIDQuery := get_reminder_by_id_query.NewQueryHandler(reminderRepository)
+	getReminderByIDQuery := get_reminder_by_id_query.NewQueryHandler(postgreSQLReminderRepository)
 	getReminderByIDQuery = get_reminder_by_id_query.NewQueryHandlerTracer(getReminderByIDQuery)
 
 	createReminderHTTPHandler := create_reminder_http_handler.NewHTTPHandler(createReminderCommand)
