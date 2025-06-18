@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/redis/rueidis"
 	"google.golang.org/protobuf/proto"
@@ -55,10 +56,17 @@ func (x Repository) GetAllReminders(ctx context.Context) ([]reminder_aggregate.R
 		keys := scanRes.Elements
 
 		var reminder reminder_aggregate.Reminder
+		var reminderID reminder_id_model.ReminderID
+
 		for _, key := range keys {
-			reminder, err = x.getReminderFromRedis(ctx, key)
+			reminderID, err = reminder_id_model.NewReminderIDFromString(strings.TrimPrefix(key, keyPrefix))
 			if err != nil {
-				return nil, fmt.Errorf("failed to get reminder: %w", err)
+				return nil, fmt.Errorf("failed to parse reminder: %w", err)
+			}
+
+			reminder, err = x.GetReminderByID(ctx, reminderID)
+			if err != nil {
+				return nil, err
 			}
 
 			reminders = append(reminders, reminder)
@@ -129,35 +137,6 @@ func (x Repository) SaveReminder(ctx context.Context, reminder reminder_aggregat
 	}
 
 	return nil
-}
-
-func (x Repository) getReminderFromRedis(ctx context.Context, key string) (reminder_aggregate.Reminder, error) {
-	v, err := x.client.Do(
-		ctx,
-		x.client.B().Get().
-			Key(key).
-			Build(),
-	).ToString()
-	if err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to get reminder: %w", err)
-	}
-
-	decode, err := base64.StdEncoding.DecodeString(v)
-	if err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to decode reminder: %w", err)
-	}
-
-	var reminderDTO reminder_v1.Reminder
-	if err = proto.Unmarshal(decode, &reminderDTO); err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to unmarshal reminder: %w", err)
-	}
-
-	reminder, err := ToReminder(&reminderDTO)
-	if err != nil {
-		return reminder_aggregate.Reminder{}, fmt.Errorf("failed to create reminder: %w", err)
-	}
-
-	return reminder, nil
 }
 
 func NewRepository(client rueidis.Client) reminder_aggregate.ReminderRepository {
