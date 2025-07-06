@@ -3,7 +3,7 @@ services:
     build: .
     ports:
       - "9443:9443"
-      - "50051:50051"
+      - "9000:9000"
     depends_on:
       - postgresql
       - redis

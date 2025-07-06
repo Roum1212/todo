@@ -4,7 +4,6 @@
 | Reminder ID          | айди напоминалки       |          |
 | Reminder Title       | загловоков напоминалки |          |
 | Reminder Description | тело напоминалки       |          |
-| Account              | аккаунт                | ✔️       |
 
 Контракт:
 
