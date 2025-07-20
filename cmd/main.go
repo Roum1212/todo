@@ -220,6 +220,10 @@ func main() { //nolint:gocognit,cyclop // OK.
 		return nil
 	})
 
+	defer func() {
+		_ = srv.Shutdown(ctx) //nolint:errcheck // OK.
+	}()
+
 	g.Go(func() error {
 		if err = grpcServer.Serve(listen); err != nil {
 			slog.ErrorContext(ctx, "failed to serve grpc server", slog.Any("error", err))
@@ -229,6 +233,10 @@ func main() { //nolint:gocognit,cyclop // OK.
 
 		return nil
 	})
+
+	defer func() {
+		grpcServer.GracefulStop()
+	}()
 
 	if err = g.Wait(); err != nil {
 		slog.ErrorContext(ctx, "failed to shutdown server", slog.Any("error", err))
